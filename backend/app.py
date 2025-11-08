@@ -1,3 +1,4 @@
+import os
 from cs50 import SQL
 from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -57,7 +58,7 @@ def login():
         "user_id": existing_user[0]["id"],
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
     }
-    token = jwt.encode(payload, "Chachinaychachakochandikaychumchaysaychutnichutai", algorithm="HS256")
+    token = jwt.encode(payload, os.environ['JWT_SECRET'], algorithm="HS256")
 
     return jsonify({
     "message": "Login successful",
