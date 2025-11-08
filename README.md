@@ -1,6 +1,6 @@
 
 <div align="center">
-  <img src="src/assets/logo-whiteoutline.png" alt="Flexpay Logo" width="250"/>
+  <img src="src/assets/logo-white.png" alt="Flexpay Logo" width="250"/>
   <h1 align="center">Flexpay</h1>
   <p align="center">
     A modern mobile payment application built with React Native.
