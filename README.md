@@ -1,97 +1,192 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-# Getting Started
+<div align="center">
+  <img src="src/assets/logo.png" alt="Flexpay Logo" width="150"/>
+  <h1 align="center">Flexpay</h1>
+  <p align="center">
+    A modern mobile payment application built with React Native.
+    <br />
+    <a href="#">View Demo</a>
+    ·
+    <a href="#">Report Bug</a>
+    ·
+    <a href="#">Request Feature</a>
+  </p>
+</div>
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## About The Project
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+Flexpay is a React Native mobile application for a seamless payment experience. It allows users to send and receive money, manage their cards, and make payments using QR codes. The app is built with a focus on a clean user interface and a robust state management system.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+This repository contains the source code for the mobile application (React Native) and a simple Python backend.
 
+### Key Features
+
+*   **User Authentication**: Secure sign-up and login functionality.
+*   **Send & Receive Money**: Easily transfer funds to other Flexpay users.
+*   **Card Management**: Add and manage your credit/debit cards.
+*   **QR Code Payments**: Make quick payments by scanning QR codes.
+*   **Transaction History**: View a history of all your transactions.
+*   **Load Money**: Add funds to your Flexpay wallet.
+
+---
+
+## Tech Stack
+
+This project is built with a modern stack of technologies:
+
+*   **Frontend (Mobile)**:
+    *   [React Native](https://reactnative.dev/)
+    *   [TypeScript](https://www.typescriptlang.org/)
+    *   [Redux Toolkit](https://redux-toolkit.js.org/) for state management
+    *   [React Navigation](https://reactnavigation.org/) for routing
+    *   [React Native Paper](https://reactnativepaper.com/) for UI components
+*   **Backend**:
+    *   [Python](https://www.python.org/)
+    *   [Flask](https://flask.palletsprojects.com/) (as indicated by `app.py`)
+*   **Testing & Linting**:
+    *   [Jest](https://jestjs.io/) for testing
+    *   [ESLint](https://eslint.org/) for linting
+
+---
+
+## Getting Started
+
+To get a local copy up and running, follow these simple steps.
+
+### Prerequisites
+
+Make sure you have the following installed on your development machine:
+
+*   Node.js (version >= 20)
+*   A React Native development environment set up for either Android or iOS. See the [official documentation](https://reactnative.dev/docs/set-up-your-environment) for detailed instructions.
+*   Python and `pip` for the backend.
+
+### Installation
+
+1.  **Clone the repo**
+    ```sh
+    git clone https://github.com/your_username/FlexPay.git
+    cd FlexPay
+    ```
+2.  **Install NPM packages** for the mobile app:
+    ```sh
+    npm install
+    ```
+3.  **Set up the backend** (optional, for full functionality):
+    ```sh
+    cd backend
+    pip install -r requirements.txt
+    cd ..
+    ```
+
+### Running the Application
+
+#### Backend
+
+To start the backend server:
 ```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+cd backend
+python app.py
 ```
 
-## Step 2: Build and run your app
+#### Mobile App
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+##### Android
 
-### Android
-
-```sh
-# Using npm
+```bash
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
+##### iOS
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+First, install the CocoaPods dependencies:
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
+```bash
+cd ios
 bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
 bundle exec pod install
+cd ..
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Then, run the app:
 
-```sh
-# Using npm
+```bash
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Development
 
-## Step 3: Modify your app
+### Linting
 
-Now that you have successfully run the app, let's make changes!
+The project uses ESLint for code quality and consistency. To run the linter:
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+```bash
+npm run lint
+```
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### Testing
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+The project uses Jest for unit and component testing. To run the tests:
 
-## Congratulations! :tada:
+```bash
+npm run test
+```
 
-You've successfully run and modified your React Native App. :partying_face:
+---
 
-### Now what?
+## Folder Structure
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+The project follows a standard React Native structure, with a clear separation of concerns.
 
-# Troubleshooting
+```
+FlexPay/
+├── backend/         # Python Flask backend
+├── src/
+│   ├── assets/      # Images, icons, and other static assets
+│   ├── components/  # Reusable UI components
+│   ├── hooks/       # Custom React hooks
+│   ├── navigations/ # React Navigation setup
+│   ├── screens/     # Application screens
+│   ├── slices/      # Redux Toolkit slices
+│   ├── store/       # Redux store configuration
+│   ├── theme/       # Global styles and theme
+│   ├── types/       # TypeScript type definitions
+│   └── utils/       # Utility functions
+├── android/         # Android native project
+├── ios/             # iOS native project
+└── ...
+```
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+---
 
-# Learn More
+## Contributing
 
-To learn more about React Native, take a look at the following resources:
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+---
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+*(Note: You'll need to add a `LICENSE` file to your project if you don't have one.)*
+
+---
+
+## Acknowledgments
+
+*   [React Native Docs](https://reactnative.dev/docs/getting-started)
+*   [Readme Template](https://github.com/othneildrew/Best-README-Template)
+
