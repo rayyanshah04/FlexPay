@@ -3,7 +3,10 @@ from cs50 import SQL
 from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt #for tokens
-import datetime
+from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 db = SQL("sqlite:///database.db")
@@ -56,7 +59,7 @@ def login():
 
     payload = {
         "user_id": existing_user[0]["id"],
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24)
     }
     token = jwt.encode(payload, os.environ['JWT_SECRET'], algorithm="HS256")
 
@@ -67,7 +70,7 @@ def login():
         "id": existing_user[0]["id"],
         "email": existing_user[0]["email"],
         "name": existing_user[0]["name"],
-        "token_expiry": (datetime.datetime.utcnow() + datetime.timedelta(hours=24)).isoformat()
+        "token_expiry": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
 
     }
 })
@@ -75,6 +78,9 @@ def login():
 
 
 if __name__ == '__main__':
+    # Option 1: For Android Emulator.
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-    # app.run()
+
+    # Option 2: For server
+    # app.run(debug=True)
