@@ -17,6 +17,9 @@ import UserIcon from '../assets/icons/user-solid-full.svg';
 import PhoneIcon from '../assets/icons/send.svg';
 import IbanIcon from '../assets/icons/wallet.svg';
 import NoteIcon from '../assets/icons/clipboard.svg';
+import { useSelector } from 'react-redux';
+import { selectToken } from '../slices/authSlice';
+import { API_BASE } from '../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddingBeneficiary'>;
 
@@ -46,12 +49,22 @@ export default function AddingBeneficiary({ navigation }: Props) {
   const [iban, setIban] = useState('');
   const [note, setNote] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const token = useSelector(selectToken);
 
   const validateInputs = () => {
-    if (!name.trim() || !phone.trim() || !iban.trim()) {
-      Alert.alert('Validation Error', 'Please fill in Name, Phone, and IBAN.');
+    const phoneRegex = /^03\d{9}$/; // Regex for 03XXXXXXXXX format
+
+    if (!phone.trim()) {
+      Alert.alert('Validation Error', 'Phone Number is required.');
       return false;
     }
+
+    if (!phoneRegex.test(phone.trim())) {
+      Alert.alert('Validation Error', 'Phone Number format is invalid. It should be 03XXXXXXXXX (e.g., 03162993834).');
+      return false;
+    }
+
+    // Name and IBAN are now optional
     return true;
   };
 
@@ -59,13 +72,34 @@ export default function AddingBeneficiary({ navigation }: Props) {
     if (!validateInputs()) return;
     setIsLoading(true);
     try {
-      // In a real app, you would make an API call here to save the beneficiary
-      console.log({ name, phone, iban, note });
-      Alert.alert('Success', 'Beneficiary added successfully!');
+      const response = await fetch(`${API_BASE}/api/add_beneficiary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          phone,
+          iban,
+          note,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // If the server returns an error (e.g., 400, 401, 500)
+        // 'result.error' will contain the error message from your Flask backend
+        throw new Error(result.error || 'An unknown error occurred.');
+      }
+
+      Alert.alert('Success', result.message || 'Beneficiary added successfully!');
       navigation.goBack();
     } catch (err: any) {
       console.error('Add Beneficiary Error:', err);
-      Alert.alert('Failed', 'Unable to add beneficiary. Please try again.');
+      // This will display the error message from the `throw new Error(...)` above
+      Alert.alert('Failed to Add Beneficiary', err.message);
     } finally {
       setIsLoading(false);
     }

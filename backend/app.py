@@ -105,6 +105,53 @@ def get_balance(current_user):
 
 
 
+@app.route('/api/add_beneficiary', methods=['POST'])
+@token_required
+def add_beneficiary(current_user):
+    data = request.get_json()
+    name = data.get('name')
+    phone = data.get('phone')
+    iban = data.get('iban')
+    note = data.get('note')
+    user_id = current_user['id']
+
+    #check if number is already in beneficiaries for this user
+    existing_beneficiary = db.execute("SELECT * FROM beneficiaries WHERE user_id = ? AND phone = ?", user_id, phone)
+    if existing_beneficiary:
+        return jsonify({"error": "Beneficiary with this phone number already exists"}), 400
+    
+    #check if IBAN is already in beneficiaries for this user
+    existing_iban = db.execute("SELECT * FROM beneficiaries WHERE user_id = ? AND iban = ?", user_id, iban)
+    if existing_iban:
+        return jsonify({"error": "Beneficiary with this IBAN already exists"}), 400
+    
+    #check if user is adding themselves
+    user = db.execute("SELECT * FROM users WHERE id = ?", user_id)[0]
+    if user['phone'] == phone or user['iban'] == iban:
+        return jsonify({"error": "We know you love yourself, but you cant add yourself in your benefeciaries"}), 400
+    
+    #check if phone number/IBAN exists in users table
+
+
+    print(f"User with ID {user_id} is adding a beneficiary with the following details:")
+    print(f"Name: {name}")
+    print(f"Phone: {phone}")
+    print(f"IBAN: {iban}")
+    print(f"Note: {note}")
+
+    # HOW TO RETURN AN ERROR:
+    # If validation fails, you can return a JSON response with an error message and a 4xx status code.
+    # The frontend will be able to catch this and display the error.
+    # For example, if the IBAN is invalid:
+    # if not is_valid_iban(iban):
+    #     return jsonify({"error": "The provided IBAN is not valid."}), 400
+
+    # For now, we'll just simulate a success response.
+    # In a real application, you would insert the data into your 'beneficiaries' table here.
+    
+    return jsonify({"message": "Beneficiary added successfully!"}), 200
+
+
 if __name__ == '__main__':
     # Option 1: For Android Emulator.
     port = int(os.environ.get("PORT", 5000))
