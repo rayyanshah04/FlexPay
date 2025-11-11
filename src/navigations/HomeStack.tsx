@@ -9,6 +9,7 @@ import PaymentScreen from '../screens/PaymentScreen';
 // --- FIX: Import the missing screens ---
 import SendMoney from '../screens/SendMoney';
 import QRCodeScreen from '../screens/QRCodeScreen';
+import AddingBeneficiary from '../screens/AddingBeneficiary';
 // Import other home-related screens
 
 // --- FIX: Update the Param list to match HomeScreen ---
@@ -19,6 +20,7 @@ export type HomeStackParamList = {
   PaymentScreen: undefined; // Renamed from Payment
   SendMoney: undefined; // Added
   QRCodeScreen: undefined; // Added
+  AddingBeneficiary: undefined; // Added
 };
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -73,6 +75,14 @@ export default function HomeStack() {
         options={{
           headerShadowVisible: false,
           title: 'QR Code',
+        }}
+      />
+      <Stack.Screen
+        name="AddingBeneficiary"
+        component={AddingBeneficiary}
+        options={{
+          headerShadowVisible: false,
+          title: 'Add Beneficiary',
         }}
       />
     </Stack.Navigator>

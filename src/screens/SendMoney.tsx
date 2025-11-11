@@ -52,7 +52,6 @@ export default function SendMoney({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-
       <View style={styles.inputContainer}>
         <View style={styles.inputIcon}>
           <ScanIcon width={20} height={20} fill="#999" />
@@ -67,7 +66,7 @@ export default function SendMoney({ navigation }: Props) {
         />
       </View>
 
-      <Text style={styles.sectionTitle}>Recent Contacts</Text>
+      {/* <Text style={styles.sectionTitle}>Beneficiaries</Text> */}
 
       <ScrollView style={styles.userList} showsVerticalScrollIndicator={false}>
         {users.map(user => (
@@ -88,7 +87,10 @@ export default function SendMoney({ navigation }: Props) {
         ))}
       </ScrollView>
 
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => navigation.navigate('AddingBeneficiary')}
+      >
         <Text style={styles.addButtonText}>+ Add a Beneficiary</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
