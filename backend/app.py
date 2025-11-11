@@ -15,7 +15,7 @@ db = SQL("sqlite:///database.db")
 @app.route('/api/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    name = data.get('name')
+    name = (data.get('name')).title()
     phone_number = data.get('phone_number')
     password = data.get('password')
 
@@ -30,11 +30,13 @@ def signup():
     #generate password hash
     hash = generate_password_hash(password)
 
+    iban = "PK04PK04FLXP00000" + phone_number
+
     #if not, insert new user
     db.execute("INSERT INTO users (name, phone_number, password, cash) VALUES (?, ?, ?, ?)", name, phone_number, hash,10000)
 
     #add into user_profiles table as well
-    db.execute("INSERT INTO user_profiles (user_id, name, phone_number) VALUES ((SELECT id FROM users WHERE phone_number = ?), ?, ?)", phone_number, name, phone_number)
+    db.execute("INSERT INTO user_profiles (user_id, phone_number, iban) VALUES ((SELECT id FROM users WHERE phone_number = ?), ?, ?)", phone_number, phone_number, iban)
 
     # returning to frontend for later use
     return jsonify({
@@ -123,11 +125,22 @@ def add_beneficiary(current_user):
     #getting user id of the phone number or IBAN
     if is_phone:
         user_id_beneficiary = db.execute("SELECT id FROM user_profiles WHERE phone_number = ?", iban_or_number)
+
+        #if phone number is same as user's own phone number
+        user_own_phone = db.execute("SELECT phone_number FROM user_profiles WHERE user_id = ?", user_id)
+        if user_own_phone and user_own_phone[0]['phone_number'] == iban_or_number:
+            return jsonify({"error": "I know you love yourself so much :)"}), 400
         # if no user found with that phone number
         if not user_id_beneficiary:
             return jsonify({"error": "No user found with that phone number"}), 400
     elif is_iban:
         user_id_beneficiary = db.execute("SELECT id FROM user_profiles WHERE iban = ?", iban_or_number)
+
+        #if IBAN is same as user's own IBAN
+        user_own_iban = db.execute("SELECT iban FROM user_profiles WHERE user_id = ?", user_id)
+        if user_own_iban and user_own_iban[0]['iban'] == iban_or_number:
+            return jsonify({"error": "I know you love yourself so much :)"}), 400
+        
         # if no user found with that phone number
         if not user_id_beneficiary:
             return jsonify({"error": "No user found with that phone number"}), 400

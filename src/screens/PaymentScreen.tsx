@@ -35,7 +35,7 @@ export default function PaymentScreen({ navigation }: Props) {
   };
 
   const handleRequest = () => {
-    console.log('Requesting $', amount);
+    console.log('Requesting Rs. ', amount);
     // You could show a confirmation modal here
     navigation.goBack(); // Go back after requesting
   };
@@ -48,7 +48,7 @@ export default function PaymentScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container}>
       {/* Amount Display */}
       <View style={styles.amountContainer}>
-        <Text style={styles.amountText}>${amount}</Text>
+        <Text style={styles.amountText}>Rs. {amount}</Text>
       </View>
 
       {/* Keypad */}
