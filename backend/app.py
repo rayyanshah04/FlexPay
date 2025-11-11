@@ -16,14 +16,14 @@ db = SQL("sqlite:///database.db")
 def signup():
     data = request.get_json()
     name = data.get('name')
-    email = data.get('email')
+    phone_number = data.get('phone_number')
     password = data.get('password')
 
     #prints in terminal for debugging
-    print(f"Received: {name}, {email}, {password}")
+    print(f"Received: {name}, {phone_number}, {password}")
 
     #checking if user already exists
-    existing_user = db.execute("SELECT * FROM users WHERE email = ?", email)
+    existing_user = db.execute("SELECT * FROM users WHERE phone_number = ?", phone_number)
     if existing_user:
         return jsonify({"error": "User already exists"}), 400
     
@@ -31,25 +31,28 @@ def signup():
     hash = generate_password_hash(password)
 
     #if not, insert new user
-    db.execute("INSERT INTO users (name, email, password, cash) VALUES (?, ?, ?, ?)", name, email, hash,10000)
+    db.execute("INSERT INTO users (name, phone_number, password, cash) VALUES (?, ?, ?, ?)", name, phone_number, hash,10000)
+
+    #add into user_profiles table as well
+    db.execute("INSERT INTO user_profiles (user_id, name, phone_number) VALUES ((SELECT id FROM users WHERE phone_number = ?), ?, ?)", phone_number, name, phone_number)
 
     # returning to frontend for later use
     return jsonify({
     "name": name,
-    "email": email,
+    "phone_number": phone_number,
 })
 
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-    email = data.get('email')
+    phone_number = data.get('phone_number')
     password = data.get('password')
 
     #prints in terminal for debugging
-    print(f"Received: {email}, {password}")
+    print(f"Received: {phone_number}, {password}")
 
     #checking if user already exists
-    existing_user = db.execute("SELECT * FROM users WHERE email = ?", email)
+    existing_user = db.execute("SELECT * FROM users WHERE phone_number = ?", phone_number)
     if not existing_user:
         return jsonify({"error": "User doesn't exist"}), 400
 
@@ -69,7 +72,7 @@ def login():
     "token": token,
     "user": {
         "id": existing_user[0]["id"],
-        "email": existing_user[0]["email"],
+        "phone_number": existing_user[0]["phone_number"],
         "name": existing_user[0]["name"],
         "token_expiry": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
 
@@ -110,46 +113,36 @@ def get_balance(current_user):
 def add_beneficiary(current_user):
     data = request.get_json()
     name = data.get('name')
-    phone = data.get('phone')
-    iban = data.get('iban')
+    iban_or_number = data.get('iban_or_number')
     note = data.get('note')
     user_id = current_user['id']
 
-    #check if number is already in beneficiaries for this user
-    existing_beneficiary = db.execute("SELECT * FROM beneficiaries WHERE user_id = ? AND phone = ?", user_id, phone)
+    is_phone = iban_or_number.startswith('03')
+    is_iban = iban_or_number.startswith('PK04')
+
+    #getting user id of the phone number or IBAN
+    if is_phone:
+        user_id_beneficiary = db.execute("SELECT id FROM user_profiles WHERE phone_number = ?", iban_or_number)
+        # if no user found with that phone number
+        if not user_id_beneficiary:
+            return jsonify({"error": "No user found with that phone number"}), 400
+    elif is_iban:
+        user_id_beneficiary = db.execute("SELECT id FROM user_profiles WHERE iban = ?", iban_or_number)
+        # if no user found with that phone number
+        if not user_id_beneficiary:
+            return jsonify({"error": "No user found with that phone number"}), 400
+    else:
+        return jsonify({"error": "Invalid phone number or IBAN format"}), 400
+    
+
+    #if user found!
+    # check if beneficiary already exists
+    existing_beneficiary = db.execute("SELECT * FROM beneficiaries WHERE user_id = ? AND beneficiary_user_id = ?", user_id, user_id_beneficiary[0]['id'])
     if existing_beneficiary:
-        return jsonify({"error": "Beneficiary with this phone number already exists"}), 400
+        return jsonify({"error": "Beneficiary already exists"}), 400
     
-    #check if IBAN is already in beneficiaries for this user
-    existing_iban = db.execute("SELECT * FROM beneficiaries WHERE user_id = ? AND iban = ?", user_id, iban)
-    if existing_iban:
-        return jsonify({"error": "Beneficiary with this IBAN already exists"}), 400
-    
-    #check if user is adding themselves
-    user = db.execute("SELECT * FROM users WHERE id = ?", user_id)[0]
-    if user['phone'] == phone or user['iban'] == iban:
-        return jsonify({"error": "We know you love yourself, but you cant add yourself in your benefeciaries"}), 400
-    
-    #check if phone number/IBAN exists in users table
 
-
-    print(f"User with ID {user_id} is adding a beneficiary with the following details:")
-    print(f"Name: {name}")
-    print(f"Phone: {phone}")
-    print(f"IBAN: {iban}")
-    print(f"Note: {note}")
-
-    # HOW TO RETURN AN ERROR:
-    # If validation fails, you can return a JSON response with an error message and a 4xx status code.
-    # The frontend will be able to catch this and display the error.
-    # For example, if the IBAN is invalid:
-    # if not is_valid_iban(iban):
-    #     return jsonify({"error": "The provided IBAN is not valid."}), 400
-
-    # For now, we'll just simulate a success response.
-    # In a real application, you would insert the data into your 'beneficiaries' table here.
-    
-    return jsonify({"message": "Beneficiary added successfully!"}), 200
+    return jsonify({"balance": note})
 
 
 if __name__ == '__main__':

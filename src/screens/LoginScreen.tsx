@@ -77,24 +77,24 @@ const GradientInput = ({
 );
 
 export default function LoginScreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   // const dispatch = useDispatch(); // Removed useDispatch
 
   const [isLoading, setIsLoading] = useState(false);
 
   // State for input focus
-  const [emailFocused, setEmailFocused] = useState(false);
+  const [phoneNumberFocused, setPhoneNumberFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   // State for password visibility
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const validateInputs = () => {
-    const trimmedEmail = email.trim();
+    const trimmedPhoneNumber = phoneNumber.trim();
     const trimmedPassword = password;
 
-    if (!trimmedEmail || !trimmedPassword) {
-      Alert.alert('Validation Error', 'Please enter email and password');
+    if (!trimmedPhoneNumber || !trimmedPassword) {
+      Alert.alert('Validation Error', 'Please enter phone number and password');
       return false;
     }
 
@@ -111,7 +111,7 @@ export default function LoginScreen({ navigation }: Props) {
       const response = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ phone_number: phoneNumber, password }),
       });
 
       const data = await response.json();
@@ -126,7 +126,7 @@ export default function LoginScreen({ navigation }: Props) {
         JSON.stringify({
           id: data.user.id,
           name: data.user.name,  // <-- This is important
-          email: data.user.email,
+          phone_number: data.user.phone_number,
           token: data.token,
         })
       );
@@ -167,13 +167,13 @@ export default function LoginScreen({ navigation }: Props) {
         <Text style={styles.title}>Welcome Back!</Text>
 
         <GradientInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          onFocus={() => setEmailFocused(true)}
-          onBlur={() => setEmailFocused(false)}
-          isFocused={emailFocused}
-          keyboardType="email-address"
+          placeholder="Phone Number"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          onFocus={() => setPhoneNumberFocused(true)}
+          onBlur={() => setPhoneNumberFocused(false)}
+          isFocused={phoneNumberFocused}
+          keyboardType="phone-pad"
           autoCapitalize="none"
         />
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -39,12 +39,17 @@ const GradientInput = ({
   autoCapitalize,
   isPassword,
   onToggleVisibility,
+  isValid, // Updated prop
 }: any) => (
   <LinearGradient
     colors={
-      isFocused
-        ? ['#0077B6', '#6A057F'] // Active gradient
-        : ['#E0E0E0', '#E0E0E0'] // Inactive grey
+      isValid === false // Check isValid prop
+        ? ['#FF0000', '#FF6666'] // Red gradient for invalid
+        : isValid === true && !isFocused // Green gradient for valid and not focused
+          ? ['#00B37E', '#009966']
+          : isFocused
+            ? ['#0077B6', '#6A057F'] // Active gradient
+            : ['#E0E0E0', '#E0E0E0'] // Inactive grey
     }
     style={styles.inputWrapper}
     start={{ x: 0, y: 0 }}
@@ -77,34 +82,47 @@ const GradientInput = ({
 );
 
 export default function SignupScreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
   const [nameFocused, setNameFocused] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
+  const [phoneNumberFocused, setPhoneNumberFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const [isPhoneNumberValid, setIsPhoneNumberValid] = useState<boolean | null>(null); // New state for phone number validation
 
+  const phoneRegex = /^03\d{9}$/;
+
+  useEffect(() => {
+    if (phoneNumber) {
+      setIsPhoneNumberValid(phoneRegex.test(phoneNumber));
+    } else {
+      setIsPhoneNumberValid(null);
+    }
+  }, [phoneNumber]);
 
   const validateInputs = () => {
     const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
-    if (!trimmedName || !trimmedEmail || !password) {
+    const trimmedPhoneNumber = phoneNumber.trim();
+
+    let isValid = true;
+
+    if (!trimmedName || !trimmedPhoneNumber || !password) {
       Alert.alert('Validation Error', 'Please enter all fields');
-      return false;
+      isValid = false;
     }
-    if (!emailRegex.test(trimmedEmail)) {
-      Alert.alert('Invalid Email', 'Please type a valid email address');
-      return false;
+
+    if (!phoneRegex.test(trimmedPhoneNumber)) {
+      isValid = false;
     }
+
     if (password.length < 6) {
       Alert.alert('Weak Password', 'Password must be at least 6 characters');
-      return false;
+      isValid = false;
     }
-    return true;
+    return isValid;
   };
 
   const handleSignup = async () => {
@@ -116,7 +134,7 @@ export default function SignupScreen({ navigation }: Props) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, phone_number: phoneNumber, password }),
       });
 
       const data = await response.json();
@@ -171,15 +189,21 @@ export default function SignupScreen({ navigation }: Props) {
             autoCapitalize="words"
           />
 
+          {isPhoneNumberValid === false && (
+            <Text style={styles.errorText}>
+              Correct format: 03xxxxxxxxx
+            </Text>
+          )}
           <GradientInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            onFocus={() => setEmailFocused(true)}
-            onBlur={() => setEmailFocused(false)}
-            isFocused={emailFocused}
-            keyboardType="email-address"
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            onFocus={() => setPhoneNumberFocused(true)}
+            onBlur={() => setPhoneNumberFocused(false)}
+            isFocused={phoneNumberFocused}
+            keyboardType="phone-pad"
             autoCapitalize="none"
+            isValid={isPhoneNumberValid}
           />
 
           <GradientInput
@@ -281,6 +305,13 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     paddingHorizontal: 12,
+  },
+  errorText: {
+    marginTop: -8,
+    color: 'red',
+    fontSize: 14,
+    textAlign: 'left',
+    marginBottom: 5,
   },
   buttonContainer: {
     marginTop: 10,

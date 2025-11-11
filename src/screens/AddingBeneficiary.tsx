@@ -46,25 +46,36 @@ const StyledInput = ({ label, value, onChangeText, placeholder, keyboardType, Sv
 export default function AddingBeneficiary({ navigation }: Props) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [iban, setIban] = useState('');
   const [note, setNote] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const token = useSelector(selectToken);
 
+  const phoneRegex = /^03\d{9}$/;
+  const ibanRegex = /^PK04FLXP0000003\d{9}$/;
+
+  // Validation function
+  const isPhoneOrIbanValid = (input: string) => {
+    if (!input.trim()) return null; // Empty input (not validated yet)
+    return phoneRegex.test(input) || ibanRegex.test(input);
+  };
+
+  const phoneValidationStatus = isPhoneOrIbanValid(phone);
+
   const validateInputs = () => {
-    const phoneRegex = /^03\d{9}$/; // Regex for 03XXXXXXXXX format
+    const trimmedInput = phone.trim();
 
-    if (!phone.trim()) {
-      Alert.alert('Validation Error', 'Phone Number is required.');
+    if (!trimmedInput) {
+      Alert.alert('Validation Error', 'Phone Number/IBAN is required.');
       return false;
     }
 
-    if (!phoneRegex.test(phone.trim())) {
-      Alert.alert('Validation Error', 'Phone Number format is invalid. It should be 03XXXXXXXXX (e.g., 03162993834).');
+    if (!phoneRegex.test(trimmedInput) && !ibanRegex.test(trimmedInput)) {
+      Alert.alert(
+        'Validation Error',
+        'Invalid format. Use 03XXXXXXXXX for phone or PK04FLXP0000003XXXXXXXXX for IBAN (8 digits only at end).'
+      );
       return false;
     }
-
-    // Name and IBAN are now optional
     return true;
   };
 
@@ -80,8 +91,7 @@ export default function AddingBeneficiary({ navigation }: Props) {
         },
         body: JSON.stringify({
           name,
-          phone,
-          iban,
+          iban_or_number: phone,
           note,
         }),
       });
@@ -89,8 +99,6 @@ export default function AddingBeneficiary({ navigation }: Props) {
       const result = await response.json();
 
       if (!response.ok) {
-        // If the server returns an error (e.g., 400, 401, 500)
-        // 'result.error' will contain the error message from your Flask backend
         throw new Error(result.error || 'An unknown error occurred.');
       }
 
@@ -98,7 +106,6 @@ export default function AddingBeneficiary({ navigation }: Props) {
       navigation.goBack();
     } catch (err: any) {
       console.error('Add Beneficiary Error:', err);
-      // This will display the error message from the `throw new Error(...)` above
       Alert.alert('Failed to Add Beneficiary', err.message);
     } finally {
       setIsLoading(false);
@@ -129,22 +136,36 @@ export default function AddingBeneficiary({ navigation }: Props) {
             SvgIcon={UserIcon}
           />
 
-          <StyledInput
-            label="Phone Number"
-            placeholder="e.g., 03001234567"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            SvgIcon={PhoneIcon}
-          />
-
-          <StyledInput
-            label="IBAN / Account Number"
-            placeholder="e.g., PK12ABCD1234567890"
-            value={iban}
-            onChangeText={setIban}
-            SvgIcon={IbanIcon}
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone Number / IBAN</Text>
+            <Text style={styles.formatText}>
+              Phone: 03XXXXXXXXX (11 DIGITS){'\n'}IBAN: PK04FLXP0000003XXXXXXXXX (24 DIGITS)
+            </Text>
+            <View
+              style={[
+                styles.inputContainer,
+                phoneValidationStatus === false && styles.inputContainerError,
+              ]}
+            >
+              <View style={styles.inputIcon}>
+                <PhoneIcon width={20} height={20} fill="#999" />
+              </View>
+              <TextInput
+                placeholder="Phone/IBAN"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="default"
+                placeholderTextColor={'#999'}
+                style={styles.input}
+              />
+            </View>
+            {phoneValidationStatus === false && (
+              <Text style={styles.errorText}>Invalid Phone or IBAN format</Text>
+            )}
+            {phoneValidationStatus === true && (
+              <Text style={styles.successText}>✓ Valid format</Text>
+            )}
+          </View>
 
           <StyledInput
             label="Note (Optional)"
@@ -175,7 +196,7 @@ export default function AddingBeneficiary({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA', // Same as SendMoney
+    backgroundColor: '#F8F9FA',
   },
   scrollView: {
     flex: 1,
@@ -187,9 +208,10 @@ const styles = StyleSheet.create({
   formCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
+    marginTop: 28,
     padding: 24,
-    elevation: 2, // Android shadow
-    shadowColor: '#000', // iOS shadow
+    elevation: 2,
+    shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -205,6 +227,12 @@ const styles = StyleSheet.create({
     color: '#6a6a6a',
     marginBottom: 32,
   },
+  formatText: {
+    fontSize: 12,
+    color: '#6a6a6a',
+    marginBottom: 12,
+    textAlign: 'left',
+  },
   inputGroup: {
     marginBottom: 16,
   },
@@ -217,12 +245,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA', // Light grey background for input
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 55,
     borderWidth: 1,
     borderColor: '#EFEFEF',
+  },
+  inputContainerError: {
+    borderColor: '#FF4444',
+    borderWidth: 2,
   },
   inputIcon: {
     marginRight: 12,
@@ -232,8 +264,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#222',
   },
+  errorText: {
+    fontSize: 12,
+    color: '#FF4444',
+    marginTop: 6,
+    fontWeight: '500',
+  },
+  successText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    marginTop: 6,
+    fontWeight: '500',
+  },
   buttonContainer: {
-    marginBottom: 34,
+    marginBottom: 64,
     padding: 24,
     backgroundColor: '#F8F9FA',
   },
