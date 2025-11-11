@@ -13,7 +13,7 @@ const environments = {
 
 // ==> SET YOUR CURRENT ENVIRONMENT HERE <==
 // Change this value to 'local' or 'production' to switch environments.
-const CURRENT_ENV: 'local' | 'production' = 'production';
+const CURRENT_ENV: 'local' | 'production' = 'local';
 
 
 // Export the configuration for the current environment

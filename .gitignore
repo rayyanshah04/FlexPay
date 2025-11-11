@@ -76,3 +76,4 @@ yarn-error.log
 
 # Backend
 backend/.env
+/backend/venv/

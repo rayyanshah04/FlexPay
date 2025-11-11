@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt #for tokens
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
+from functools import wraps
 
 load_dotenv()
 
@@ -74,6 +75,33 @@ def login():
 
     }
 })
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(' ')[1]
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+        try:
+            data = jwt.decode(token, os.environ['JWT_SECRET'], algorithms=["HS256"])
+            current_user = db.execute("SELECT * FROM users WHERE id = ?", data['user_id'])[0]
+        except Exception as e:
+            print(e)
+            return jsonify({'message': 'Token is invalid!'}), 401
+        return f(current_user, *args, **kwargs)
+    return decorated
+
+@app.route('/api/balance')
+@token_required
+def get_balance(current_user):
+    user_id = current_user['id']
+    balance = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
+    if balance:
+        cash_value = balance[0]['cash']
+        return jsonify({"balance": cash_value})
+    return jsonify({"error": "User not found"}), 404
 
 
 

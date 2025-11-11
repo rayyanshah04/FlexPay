@@ -25,6 +25,7 @@ import {
   Text,
   TouchableOpacity,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { theme, meshGradientBackground } from '../theme/theme';
@@ -33,6 +34,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../navigations/HomeStack';
+import { API_BASE } from '../config';
 
 const api = {
   call: (detail: string) => {
@@ -238,29 +240,69 @@ const ActionButton = ({ SvgComponent, label, onPress }: any) => (
 const HomeScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const [userName, setUserName] = useState('User'); // <-- add this
-
+  const [userName, setUserName] = useState('User');
   const [isBalanceVisible, setIsBalanceVisible] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const fetchBalance = async () => {
+    try {
+      const userDetails = await AsyncStorage.getItem('userDetails');
+      if (!userDetails) {
+        throw new Error("User details not found");
+      }
+
+      const parsedDetails = JSON.parse(userDetails);
+      const token = parsedDetails.token;
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const response = await fetch(`${API_BASE}/api/balance`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch balance');
+      }
+
+      const data = await response.json();
+      setBalance(data.balance);
+    } catch (error) {
+      console.error("Failed to fetch balance:", error);
+      // Optionally, handle the error in the UI, e.g., show a message
+    }
+  };
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchBalance().finally(() => setRefreshing(false));
+  }, []);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndBalance = async () => {
       const userData = await AsyncStorage.getItem('userDetails');
       if (userData) {
         const parsed = JSON.parse(userData);
-
-        // Save to local state
         setUserName(parsed.name || 'User');
-
-        // Save to Redux so other screens can access
         dispatch(login(parsed));
       }
-
+      await fetchBalance();
     };
-    fetchUser();
-  }, []);
+
+    fetchUserAndBalance();
+  }, [dispatch]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -295,7 +337,7 @@ const HomeScreen = () => {
               </TouchableOpacity>
             </View>
             <Text style={styles.balanceAmount}>
-              {isBalanceVisible ? 'Rs. 1,234.56' : '******'}
+              {isBalanceVisible ? (balance !== null ? `Rs. ${new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(balance)}` : '...') : '******'}
             </Text>
           </View>
         </View>
