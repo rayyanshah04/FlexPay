@@ -13,6 +13,7 @@ import {
 import { useTheme } from 'react-native-paper';
 import { Button } from '../../components/ui/Button';
 import { RootStackParamList } from '../../navigations/StackNavigator';
+import { colors } from '../../theme/style';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConfirmPayment'>;
 
@@ -42,9 +43,9 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
       {/* Recipient Summary Card */}
       <View style={styles.summaryCard}>
         <View
-          style={[styles.avatar, { backgroundColor: theme.colors.primary }]}
+          style={[styles.avatar, { backgroundColor: colors.primary }]}
         >
-          <FontAwesome name="user" size={24} color="#fff" />
+          <FontAwesome name="user" size={24} color={colors.white} />
         </View>
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{name}</Text>
@@ -64,7 +65,7 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
         <TextInput
           style={styles.textArea}
           placeholder="Write a short message..."
-          placeholderTextColor="#aaa"
+          placeholderTextColor={colors.placeholder}
           multiline
           numberOfLines={4}
           value={note}
@@ -85,23 +86,22 @@ export default ConfirmPayment;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     paddingHorizontal: 20,
     paddingTop: 60,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#222',
+    color: colors.textDark,
     marginBottom: 25,
   },
   summaryCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 12,
-    padding: 15,
-    shadowColor: '#000',
+    shadowColor: colors.textDark,
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
@@ -121,66 +121,65 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#222',
+    color: colors.textDark,
   },
   userIban: {
     fontSize: 13,
-    color: '#777',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   amountBox: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 15,
     marginTop: 20,
-    shadowColor: '#000',
+    shadowColor: colors.textDark,
     shadowOpacity: 0.04,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
   },
   amountLabel: {
     fontSize: 15,
-    color: '#777',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   amountValue: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111',
+    color: colors.textDark,
   },
   noteContainer: {
     marginTop: 25,
   },
   noteLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    color: colors.textDark,
     marginBottom: 8,
   },
   textArea: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: colors.frostedBorder,
     padding: 12,
     fontSize: 15,
-    color: '#333',
+    color: colors.textDark,
     height: 120,
   },
   confirmButton: {
-    backgroundColor: '#0871B3',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
     marginTop: 35,
     alignItems: 'center',
-    shadowColor: '#0871B3',
+    shadowColor: colors.primary,
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 10,
     elevation: 5,
   },
   confirmText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 17,
     fontWeight: '700',
   },

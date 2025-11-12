@@ -5,6 +5,7 @@ import BackspaceIcon from '../../assets/icons/backspace.svg'; // --- ADDED ---
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../../navigations/HomeStack'; // Use HomeStack
 import { Button } from '../../components/ui/Button'; // Import our Button
+import { colors } from '../../theme/style';
 
 // --- FIX: Use the correct type from HomeStack ---
 type Props = NativeStackScreenProps<HomeStackParamList, 'PaymentScreen'>;
@@ -64,7 +65,7 @@ export default function PaymentScreen({ navigation }: Props) {
         ))}
         {/* Backspace Button --- UPDATED --- */}
         <TouchableOpacity style={styles.key} onPress={handleBackspace}>
-          <BackspaceIcon width={28} height={28} fill="#0871B3" />
+          <BackspaceIcon width={28} height={28} fill={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -82,7 +83,7 @@ export default function PaymentScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // Clean white background
+    backgroundColor: colors.white, // Clean white background
     justifyContent: 'space-between',
   },
   amountContainer: {
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 64, // Large, aesthetic amount
     fontWeight: '600',
-    color: '#222222',
+    color: colors.textDark,
     textAlign: 'center',
     // Allows text to shrink if it gets too long
     adjustsFontSizeToFit: true,
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   },
   keyText: {
     fontSize: 28,
-    color: '#222222',
+    color: colors.textDark,
     fontWeight: '500',
   },
   buttonContainer: {

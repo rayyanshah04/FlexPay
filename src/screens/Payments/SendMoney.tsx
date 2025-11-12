@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 import ScanIcon from '../../assets/icons/scan.svg';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import { RootStackParamList } from '../../navigations/StackNavigator';
-import { theme } from '../../theme/theme';
+import { colors } from '../../theme/style';
 import { API_BASE } from '../../config';
 import { selectToken } from '../../slices/authSlice';
 
@@ -131,20 +131,20 @@ export default function SendMoney({ navigation }: Props) {
     >
       <View style={styles.inputContainer}>
         <View style={styles.inputIcon}>
-          <ScanIcon width={20} height={20} fill="#999" />
+          <ScanIcon width={20} height={20} fill={colors.placeholder} />
         </View>
         <TextInput
           placeholder="Search by name, phone, or IBAN..."
           value={accountNo}
           onChangeText={setAccountNo}
           autoCapitalize="none"
-          placeholderTextColor={'#999'}
+          placeholderTextColor={colors.placeholder}
           style={styles.input}
         />
       </View>
       {isSearching && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator style={styles.loadingIndicator} color={theme.colors.primary} />
+          <ActivityIndicator style={styles.loadingIndicator} color={colors.primary} />
           <Text style={styles.loadingText}>Searching...</Text>
         </View>
       )}
@@ -185,7 +185,7 @@ export default function SendMoney({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.white,
   },
   header: {
     flexDirection: 'row',
@@ -193,30 +193,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'android' ? 40 : 60,
-    paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   headerBack: {
     fontSize: 24,
-    color: theme.colors.primary,
+    color: colors.primary,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#222',
+    color: colors.textDark,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 12,
     paddingHorizontal: 12,
     marginHorizontal: 24,
     marginTop: 34,
     marginBottom: 24,
-    height: 50,
-    elevation: 2,
-    shadowColor: '#000',
+    shadowColor: colors.textDark,
     shadowOpacity: 0.05,
     shadowRadius: 5,
   },
@@ -226,7 +221,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#222',
+    color: colors.textDark,
   },
   loadingIndicator: {
     marginRight: 8,
@@ -240,13 +235,13 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     marginLeft: 8,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: colors.textDark,
     marginBottom: 16,
     marginHorizontal: 24,
   },
@@ -257,12 +252,12 @@ const styles = StyleSheet.create({
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: colors.textDark,
     shadowOpacity: 0.05,
     shadowRadius: 5,
   },
@@ -280,22 +275,22 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#222',
+    color: colors.textDark,
   },
   userIban: {
     fontSize: 14,
-    color: '#6a6a6a',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   addButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     margin: 54,
   },
   addButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 18,
     fontWeight: '600',
   },

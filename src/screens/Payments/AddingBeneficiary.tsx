@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
-import { theme } from '../../theme/theme';
+import { colors } from '../../theme/style';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import PhoneIcon from '../../assets/icons/send.svg';
 import IbanIcon from '../../assets/icons/wallet.svg';
@@ -29,14 +29,14 @@ const StyledInput = ({ label, value, onChangeText, placeholder, keyboardType, Sv
     <Text style={styles.label}>{label}</Text>
     <View style={styles.inputContainer}>
       <View style={styles.inputIcon}>
-        <SvgIcon width={20} height={20} fill="#999" />
+        <SvgIcon width={20} height={20} fill={colors.placeholder} />
       </View>
       <TextInput
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
-        placeholderTextColor={'#999'}
+        placeholderTextColor={colors.placeholder}
         style={styles.input}
       />
     </View>
@@ -148,14 +148,14 @@ export default function AddingBeneficiary({ navigation }: Props) {
               ]}
             >
               <View style={styles.inputIcon}>
-                <PhoneIcon width={20} height={20} fill="#999" />
+                <PhoneIcon width={20} height={20} fill={colors.placeholder} />
               </View>
               <TextInput
                 placeholder="Phone/IBAN"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="default"
-                placeholderTextColor={'#999'}
+                placeholderTextColor={colors.placeholder}
                 style={styles.input}
               />
             </View>
@@ -196,7 +196,7 @@ export default function AddingBeneficiary({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.white,
   },
   scrollView: {
     flex: 1,
@@ -206,12 +206,12 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   formCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 16,
     marginTop: 28,
     padding: 24,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: colors.textDark,
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -219,17 +219,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#222',
+    color: colors.textDark,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6a6a6a',
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   formatText: {
     fontSize: 12,
-    color: '#6a6a6a',
+    color: colors.textSecondary,
     marginBottom: 12,
     textAlign: 'left',
   },
@@ -239,21 +239,21 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: colors.textDark,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.white,
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 55,
     borderWidth: 1,
-    borderColor: '#EFEFEF',
+    borderColor: colors.frostedBorder,
   },
   inputContainerError: {
-    borderColor: '#FF4444',
+    borderColor: colors.error,
     borderWidth: 2,
   },
   inputIcon: {
@@ -262,38 +262,38 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#222',
+    color: colors.textDark,
   },
   errorText: {
     fontSize: 12,
-    color: '#FF4444',
+    color: colors.error,
     marginTop: 6,
     fontWeight: '500',
   },
   successText: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: colors.success,
     marginTop: 6,
     fontWeight: '500',
   },
   buttonContainer: {
     marginBottom: 64,
     padding: 24,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.white,
   },
   saveButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
-    shadowColor: theme.colors.primary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
   saveButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 18,
     fontWeight: '600',
   },

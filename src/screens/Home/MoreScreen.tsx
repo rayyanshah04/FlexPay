@@ -1,5 +1,6 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import Icon from '@react-native-vector-icons/ionicons';
+import { colors } from '../../theme/style';
 
 // for name and also see line 63
 import React from 'react';
@@ -67,7 +68,7 @@ const MoreScreen = () => {
     <ScrollView style={styles.container}>
       <TouchableOpacity style={styles.item}>
         <View style={[styles.iconContainer, styles.userContainer]}>
-          <FontAwesome name={'user'} size={30} color="#0871B3" />
+          <FontAwesome name={'user'} size={30} color={colors.primary} />
         </View>
         <Text style={styles.itemText}>{userName}</Text>
       </TouchableOpacity>
@@ -90,7 +91,7 @@ const MoreScreen = () => {
                     <Icon
                       name={cardItem.icon as any}
                       size={22}
-                      color="#0871B3"
+                      color={colors.primary}
                     />
                   </View>
                   <Text style={styles.itemText}>{cardItem.text}</Text>
@@ -103,14 +104,14 @@ const MoreScreen = () => {
         return (
           <TouchableOpacity key={index} style={styles.item}>
             <View style={styles.iconContainer}>
-              <Icon name={item.icon as any} size={22} color="#FF7A73" />
+              <Icon name={item.icon as any} size={22} color={colors.error} />
             </View>
             <Text style={styles.itemText}>{item.text}</Text>
             {item.showChevron && (
               <Icon
                 name="chevron-forward-outline"
                 size={20}
-                color="#999"
+                color={colors.placeholder}
                 style={{ marginLeft: 'auto' }}
               />
             )}
@@ -128,7 +129,7 @@ const MoreScreen = () => {
         }}
       >
         <View style={styles.iconContainer}>
-          <Icon name={'log-out-outline'} size={22} color="#FF7A73" />
+          <Icon name={'log-out-outline'} size={22} color={colors.error} />
         </View>
         <Text style={styles.itemText}>Logout</Text>
       </TouchableOpacity>
@@ -139,18 +140,18 @@ const MoreScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     paddingHorizontal: 16,
     paddingTop: 16,
   },
   sectionHeader: {
     fontSize: 14,
-    color: '#A5A5A5',
+    color: colors.placeholder,
     marginVertical: 10,
     fontWeight: '500',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 12,
     paddingVertical: 4,
     marginBottom: 16,
@@ -162,30 +163,30 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.frostedBorder,
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingVertical: 14,
     paddingHorizontal: 10,
     borderRadius: 12,
     marginBottom: 16,
   },
   iconContainer: {
-    backgroundColor: 'rgba(8, 113, 179, 0.1)',
+    backgroundColor: `rgba(${colors.primary}, 0.1)`,
     padding: 8,
     borderRadius: 25,
     marginRight: 12,
   },
 
   userContainer: {
-    backgroundColor: 'rgba(76, 183, 177, 0.1)',
+    backgroundColor: `rgba(${colors.accent}, 0.1)`,
   },
   itemText: {
     fontSize: 16,
-    color: '#0A1A2F',
+    color: colors.textDark,
     fontWeight: '500',
   },
 });

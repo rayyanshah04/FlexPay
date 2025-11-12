@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { theme, meshGradientBackground } from '../../theme/theme';
+import { colors, meshGradientBackground } from '../../theme/style';
 import LockIcon from '../../assets/icons/lock.svg';
 
 export default function NoCardScreen() {
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: theme.colors.primary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: `rgba(${colors.white}, 0.1)`,
     position: 'relative',
     zIndex: 1,
     justifyContent: 'center',
@@ -88,28 +88,28 @@ const styles = StyleSheet.create({
   noticeText: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#333',
+    color: colors.textDark,
     textAlign: 'center',
     marginBottom: 8,
   },
   noticeSubText: {
     fontSize: 16,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
   },
   getCardButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 32,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: colors.textDark,
     shadowOpacity: 0.1,
     shadowRadius: 5,
   },
   getCardButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 18,
     fontWeight: '600',
   },

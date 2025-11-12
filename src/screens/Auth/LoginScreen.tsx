@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -8,73 +7,22 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  TextInput as RNTextInput,
+  RNTextInput,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
-import { themeStyles } from '../../theme/style';
+import { themeStyles, colors } from '../../theme/style';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '../../components/ui/Button';
-import LinearGradient from 'react-native-linear-gradient';
+import { TextInput } from '../../components/ui/TextInput';
 // Import SVG icons
 import HideIcon from '../../assets/icons/hide.svg';
 import ShowIcon from '../../assets/icons/show.svg';
 import { API_BASE } from '../../config';
 
-
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
-
-// Modified GradientInput to include the eye icon
-const GradientInput = ({
-  value,
-  onChangeText,
-  placeholder,
-  secureTextEntry,
-  onFocus,
-  onBlur,
-  isFocused,
-  keyboardType,
-  autoCapitalize,
-  isPassword,
-  onToggleVisibility,
-}: any) => (
-  <LinearGradient
-    colors={
-      isFocused
-        ? ['#4CB7B1', '#0871B3'] // Active Gradient
-        : ['#E0E0E0', '#E0E0E0'] // Inactive Grey
-    }
-    style={styles.inputWrapper}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 0 }}
-  >
-    <View style={styles.inputInner}>
-      <RNTextInput
-        placeholder={placeholder}
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        secureTextEntry={secureTextEntry}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        keyboardType={keyboardType}
-        autoCapitalize={autoCapitalize}
-        placeholderTextColor={'#999'}
-      />
-      {isPassword && (
-        <TouchableOpacity onPress={onToggleVisibility} style={styles.eyeIcon}>
-          {secureTextEntry ? (
-            <HideIcon width={22} height={22} fill={'#888'} />
-          ) : (
-            <ShowIcon width={22} height={22} fill={'#888'} />
-          )}
-        </TouchableOpacity>
-      )}
-    </View>
-  </LinearGradient>
-);
 
 export default function LoginScreen({ navigation }: Props) {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -101,8 +49,6 @@ export default function LoginScreen({ navigation }: Props) {
     return true;
   };
 
-
-
   const handleLogin = async () => {
     if (!validateInputs()) return;
 
@@ -125,15 +71,14 @@ export default function LoginScreen({ navigation }: Props) {
         'userDetails',
         JSON.stringify({
           id: data.user.id,
-          name: data.user.name,  // <-- This is important
+          name: data.user.name, // <-- This is important
           phone_number: data.user.phone_number,
           token: data.token,
-        })
+        }),
       );
 
       Alert.alert('Success', data.message);
-      navigation.replace("AppTabs");
-
+      navigation.replace('AppTabs');
     } catch (err: any) {
       console.error('Login Error:', err);
       Alert.alert('Login Failed', err.message);
@@ -142,31 +87,28 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
-
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../../assets/bg.png')}
+        style={{ position: 'absolute', width: '120%', height: '120%' }}
+        resizeMode="cover"
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        <LinearGradient
-          colors={['#4CB7B1', '#0871B3']}
-          style={styles.logo}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.logoInner}>
-            <Image
-              source={require('../../assets/logo-cropped.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
-          </View>
-        </LinearGradient>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/logo-cropped.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
         <Text style={styles.title}>Welcome Back!</Text>
 
-        <GradientInput
+        <TextInput
           placeholder="Phone Number"
           value={phoneNumber}
           onChangeText={setPhoneNumber}
@@ -177,7 +119,7 @@ export default function LoginScreen({ navigation }: Props) {
           autoCapitalize="none"
         />
 
-        <GradientInput
+        <TextInput
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
@@ -192,10 +134,9 @@ export default function LoginScreen({ navigation }: Props) {
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
 
         <View style={themeStyles.wFull}>
-          <Button variant="primary" onPress={handleLogin} fullWidth disabled={isLoading}>
+          <Button variant="primary" onPress={handleLogin} disabled={isLoading}>
             {isLoading ? <ActivityIndicator color="#fff" /> : 'Login'}
           </Button>
-
         </View>
 
         <Text style={styles.switchText}>
@@ -215,40 +156,33 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    position: 'relative',
   },
   keyboardView: {
     flex: 1,
     justifyContent: 'center',
-    padding: 40,
+    padding: 24,
   },
-  logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  logoContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: colors.frostedBg,
+    borderWidth: 1,
+    borderColor: colors.frostedBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
     alignSelf: 'center',
     marginBottom: 24,
-    padding: 3,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  logoInner: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 37,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  logoImage: {
-    width: '80%',
-    height: '80%',
+  logo: {
+    width: 60,
+    height: 60,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#222222',
+    color: colors.text,
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -257,10 +191,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 2,
     marginBottom: 20,
+    marginHorizontal: 20,
   },
   inputInner: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBg,
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -270,27 +205,32 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: '#333',
+    color: colors.inputText,
   },
   eyeIcon: {
     paddingHorizontal: 12,
   },
   forgotPassword: {
-    color: '#0871B3',
+    color: colors.primary,
     textAlign: 'right',
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 24,
     marginTop: -12,
+    marginRight: 20,
   },
   switchText: {
-    color: '#666666',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 32,
     fontSize: 14,
   },
   link: {
-    color: '#0871B3',
+    color: colors.primary,
     fontWeight: '700',
+  },
+  buttonContainer: {
+    marginTop: 60,
+    gap: 16,
   },
 });

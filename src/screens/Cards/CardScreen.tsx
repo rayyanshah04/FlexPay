@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
-import { theme, meshGradientBackground } from '../../theme/theme';
+import { colors, meshGradientBackground } from '../../theme/style';
 
 // for name and also see line 63
 import React from 'react';
@@ -104,7 +104,7 @@ export default function CardScreen() {
         <Text style={styles.detailsTitle}>Card Details</Text>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Status</Text>
-          <Text style={[styles.detailValue, { color: '#27AE60' }]}>Active</Text>
+          <Text style={[styles.detailValue, { color: colors.success }]}>Active</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Name</Text>
@@ -127,7 +127,7 @@ export default function CardScreen() {
 const ActionButton = ({ SvgComponent, label, onPress }: any) => (
   <TouchableOpacity style={styles.actionItem} onPress={onPress}>
     <View style={styles.actionIcon}>
-      <SvgComponent width={22} height={22} fill={theme.colors.primary} />
+      <SvgComponent width={22} height={22} fill={colors.primary} />
     </View>
     <Text style={styles.actionLabel}>{label}</Text>
   </TouchableOpacity>
@@ -137,7 +137,7 @@ const ActionButton = ({ SvgComponent, label, onPress }: any) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   scrollContent: {
     padding: 24,
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     height: 210,
     borderRadius: 16,
     justifyContent: 'space-between',
-    shadowColor: theme.colors.primary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardType: {
-    color: 'white',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '600',
     opacity: 0.8,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   cardNumber: {
-    color: 'white',
+    color: colors.white,
     fontSize: 20,
     fontWeight: '600',
     letterSpacing: 2,
@@ -189,13 +189,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardHolder: {
-    color: 'white',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '500',
   },
   cardExpiry: {
     marginTop: 16,
-    color: 'white',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -212,26 +212,26 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: `${theme.colors.accent}40`,
+    backgroundColor: `${colors.accent}40`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   actionLabel: {
     marginTop: 0,
-    color: '#333',
+    color: colors.textDark,
     fontWeight: '500',
     fontSize: 14,
   },
   detailsContainer: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: 20,
   },
   detailsTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#222',
+    color: colors.textDark,
     marginBottom: 16,
   },
   detailRow: {
@@ -240,15 +240,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.frostedBorder,
   },
   detailLabel: {
     fontSize: 16,
-    color: '#666',
+    color: colors.textSecondary,
   },
   detailValue: {
     fontSize: 16,
-    color: '#222',
+    color: colors.textDark,
     fontWeight: '600',
   },
 });

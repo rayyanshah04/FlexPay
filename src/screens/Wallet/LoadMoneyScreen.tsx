@@ -9,7 +9,7 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { colors } from '../../theme/style';
 
 // --- Custom SVG Imports ---
 import ClipboardIcon from '../../assets/icons/clipboard.svg';
@@ -53,9 +53,9 @@ export default function LoadMoneyScreen() {
               onPress={() => handleCopy(phoneNumber, 'phone')}
             >
               {copiedItem === 'phone' ? (
-                <ClipboardCheckIcon width={20} height={20} fill="#27AE60" />
+                <ClipboardCheckIcon width={20} height={20} fill={colors.success} />
               ) : (
-                <ClipboardIcon width={20} height={20} fill={theme.colors.primary} />
+                <ClipboardIcon width={20} height={20} fill={colors.primary} />
               )}
             </TouchableOpacity>
           </View>
@@ -74,9 +74,9 @@ export default function LoadMoneyScreen() {
               onPress={() => handleCopy(iban, 'iban')}
             >
               {copiedItem === 'iban' ? (
-                <ClipboardCheckIcon width={20} height={20} fill="#27AE60" />
+                <ClipboardCheckIcon width={20} height={20} fill={colors.success} />
               ) : (
-                <ClipboardIcon width={20} height={20} fill={theme.colors.primary} />
+                <ClipboardIcon width={20} height={20} fill={colors.primary} />
               )}
             </TouchableOpacity>
           </View>
@@ -95,24 +95,24 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   limitCard: {
-    backgroundColor: `${theme.colors.accent}`,
+    backgroundColor: colors.accent,
     borderRadius: 16,
     padding: 20,
     marginBottom: 32,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: `${theme.colors.accent}66`,
+    borderColor: `${colors.accent}66`,
   },
   heading: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#444',
+    color: colors.textDark,
     marginBottom: 8,
   },
   limitText: {
     fontSize: 32,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: colors.primary,
   },
   section: {
     marginBottom: 24,
@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
   subHeading: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#222',
+    color: colors.textDark,
     marginBottom: 12,
   },
   infoBox: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.white,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 16,
-    color: '#333',
+    color: colors.textDark,
     fontWeight: '500',
     flex: 1,
   },
@@ -142,12 +142,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: theme.colors.accent,
+    backgroundColor: colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 16,
   },
   copyButtonCopied: {
-    backgroundColor: 'rgba(39, 174, 96, 0.3)',
+    backgroundColor: `${colors.success}4D`,
   },
 });

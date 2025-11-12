@@ -3,40 +3,36 @@ import React from 'react';
 import {
   Button as PaperButton,
   ButtonProps as RNPButtonProps,
-  useTheme,
 } from 'react-native-paper';
-import { themeStyles } from '../../theme/style';
+import { colors } from '../../theme/style';
 import { StyleProp, ViewStyle } from 'react-native';
 
 interface AppButtonProps extends RNPButtonProps {
   // We will define 'primary' and 'secondary' as our main variants
   variant?: 'primary' | 'secondary';
-  fullWidth?: boolean;
 }
 
 export const Button: React.FC<AppButtonProps> = ({
-  variant = 'primary', // Default to solid pink
-  fullWidth = false,
+  variant = 'primary',
   style,
   contentStyle,
   ...rest
 }) => {
-  const theme = useTheme();
-
   let mode: 'contained' | 'outlined' = 'contained';
-  let buttonColor = theme.colors.primary;
-  let textColor = theme.colors.onPrimary; // White
+  let buttonColor = colors.primary;
+  let textColor = colors.white;
   let customStyle: StyleProp<ViewStyle> = {};
 
-  // --- Rayyan Theme Button Logic ---
+  // --- Button Logic ---
   if (variant === 'secondary') {
     // This is our "Frosted Glass" button
     mode = 'outlined'; // Use outlined to remove Paper's default bg
     buttonColor = 'transparent'; // We set bg color in the style override
-    textColor = 'white';
+    textColor = colors.white;
     customStyle = {
-      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-      borderColor: 'rgba(255, 255, 255, 0.3)',
+      borderRadius: 999,
+      backgroundColor: colors.buttonSecondaryBg,
+      borderColor: colors.buttonSecondaryBorder,
       borderWidth: 1,
     };
   }
@@ -46,12 +42,17 @@ export const Button: React.FC<AppButtonProps> = ({
     <PaperButton
       mode={mode}
       style={[
-        fullWidth && { width: '100%' },
-        { borderRadius: 12 }, // Enforce rounded corners
+        { width: '85%', alignSelf: 'center', borderRadius: 999 }, // Universal size and centering
         customStyle, // Apply our custom frosted glass style
         style,
       ]}
-      contentStyle={[{ ...themeStyles.button }, contentStyle]}
+      contentStyle={[
+        {
+          paddingVertical: 10,
+          borderRadius: 120,
+        },
+        contentStyle,
+      ]}
       buttonColor={buttonColor}
       textColor={textColor}
       labelStyle={{ fontSize: 18, fontWeight: '600' }} // Match mock

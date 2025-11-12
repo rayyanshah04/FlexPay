@@ -1,49 +1,68 @@
-import { StyleSheet } from "react-native";
+import { Background } from '@react-navigation/elements';
+import { StyleSheet } from 'react-native';
+import {
+    MD3LightTheme as DefaultTheme,
+    configureFonts,
+} from 'react-native-paper';
+
+// --- Centralized Colors ---
+export const colors = {
+    white: '#FFFFFF',
+    text: '#FFFFFF',
+    textSecondary: 'rgba(255, 255, 255, 0.85)',
+    textDark: '#222222',
+    inputText: '#ffffffff',
+    placeholder: '#999',
+    icon: '#888',
+    error: 'red',
+    frostedBg: 'rgba(255, 255, 255, 0.7)',
+    frostedBorder: 'rgba(255, 255, 255, 0.3)',
+    primary: '#9747ff',
+    secondary: '#454545',
+    tertiary: '#90E0EF',
+    buttonSecondaryBg: 'rgba(255, 255, 255, 0.05)',
+    buttonSecondaryBorder: 'rgba(255, 255, 255, 0.3)',
+    accent: '#d4f3fdff',
+    success: '#34C759',
+    Background: '#121212',
+};
 
 // --- Rayyan Theme Styles ---
 export const themeStyles = StyleSheet.create({
     // --- Button Styles ---
     button: {
-        paddingVertical: 10, // Made buttons slightly taller
-        borderRadius: 12, // Rounded corners
+        paddingVertical: 10,
+        borderRadius: 120,
         fontSize: 18,
         fontWeight: '600',
-    },
-    buttonText: {
-        color: '#fff',
-        textAlign: 'center',
-        fontSize: 18,
-        fontWeight: '600',
-    },
-    btnPrimary: {
-        backgroundColor: '#F94188', // Solid pink
-    },
-    // Renamed to 'btnSecondary' for clarity
-    btnSecondary: {
-        backgroundColor: 'rgba(255, 255, 255, 0.15)', // Frosted glass
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-        borderWidth: 1,
     },
 
-    // --- Input Styles (Frosted Glass) ---
+    // --- Input Styles ---
+    inputWrapper: {
+        height: 55,
+        borderRadius: 999,
+        padding: 2,
+        marginBottom: 20,
+        marginHorizontal: 20,
+    },
+    inputInner: {
+        flex: 1,
+        backgroundColor: 'transparent',
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: colors.buttonSecondaryBorder,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
     input: {
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-        color: '#FFFFFF', // White text
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
+        flex: 1,
+        paddingHorizontal: 16,
         fontSize: 16,
-        fontWeight: '500',
+        color: colors.inputText,
     },
-
-    // --- Utility Colors ---
-    primary: {
-        color: "#F94188"
-    },
-    bgPrimary: {
-        backgroundColor: '#F94188'
+    eyeIcon: {
+        paddingHorizontal: 12,
     },
 
     // --- Utility Classes (Kept from original) ---
@@ -65,24 +84,40 @@ export const themeStyles = StyleSheet.create({
     justifyCenter: {
         justifyContent: 'center',
     },
-    // ... add any other styles you need
 });
 
-export const meshGradientBackground = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#193546', // Base color for blending
-    overflow: 'hidden',
-  },
-  gradientLayer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-});
+
+// --- Content from theme.ts ---
+
+// Font config
+const fontConfig = {
+    displayLarge: { fontFamily: 'Inter-Bold', fontSize: 32 },
+    displayMedium: { fontFamily: 'Inter-SemiBold', fontSize: 24 },
+    titleLarge: { fontFamily: 'Inter-SemiBold', fontSize: 20 },
+    bodyMedium: { fontFamily: 'Inter-Regular', fontSize: 16 },
+    labelLarge: { fontFamily: 'Inter-Medium', fontSize: 14 },
+};
+
+
+
+// --- Mesh Gradient Background (for cards) ---
+export const meshGradientBackground = {
+    container: {
+        position: 'relative' as const,
+        overflow: 'hidden' as const,
+        backgroundColor: '#81d3f1ff',
+    },
+    gradientLayer: {
+        position: 'absolute' as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+    },
+    gradients: [
+        { name: 'topLeft', colors: ['#4CB7B1', 'transparent'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+        { name: 'topRight', colors: ['#0871B3', 'transparent'], start: { x: 1, y: 0 }, end: { x: 0, y: 1 } },
+        { name: 'bottomLeft', colors: ['#0871B3', 'transparent'], start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
+        { name: 'bottomRight', colors: ['#4CB7B1', 'transparent'], start: { x: 1, y: 1 }, end: { x: 0, y: 0 } },
+    ],
+};

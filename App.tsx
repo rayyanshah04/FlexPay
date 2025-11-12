@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { store } from './src/store';
 import StackNavigator from './src/navigations/StackNavigator';
 import { PaperProvider } from 'react-native-paper';
-import { theme } from './src/theme/theme';
+import { theme } from './src/theme/style';
 
 export default function App() {
   return (

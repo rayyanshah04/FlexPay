@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import HomeStack from './HomeStack';
 import MoreScreen from '../screens/Home/MoreScreen';
-import { theme } from '../theme/theme';
+import { theme, colors } from '../theme/style';
 
 // --- Import your custom icons ---
 import ScanIcon from '../assets/icons/scan.svg';
@@ -21,7 +21,7 @@ export default function BottomBar() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: '#88AABB',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -61,7 +61,7 @@ export default function BottomBar() {
                 navigation.navigate('Home', { screen: 'QRCodeScreen' })
               }
             >
-              <View style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}>
+              <View style={[styles.scanButton, { backgroundColor: colors.primary }]}>
                 <ScanIcon width={38} height={38} fill="#FFFFFF" />
               </View>
             </TouchableOpacity>
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 40,
-    shadowColor: theme.colors.primary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },

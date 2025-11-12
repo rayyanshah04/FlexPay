@@ -10,7 +10,7 @@ import {
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import QRScanner from '../../components/qrScanner';
-import { theme } from '../../theme/theme';
+import { colors, themeStyles, theme } from '../../theme/style';
 
 // --- Import your custom camera icon ---
 import CameraIcon from '../../assets/icons/camera.svg';
@@ -48,7 +48,7 @@ const ScanRoute = () => {
     <View style={styles.scene}>
       <QRScanner onScan={setQrCode} />
       <View style={styles.scanOverlay}>
-        <Ionicons name="scan-outline" size={24} color={theme.colors.primary} />
+        <Ionicons name="scan-outline" size={24} color={colors.primary} />
         <Text style={styles.scanOverlayText}>Scanning...</Text>
       </View>
     </View>
@@ -85,10 +85,10 @@ export default function QRCodeScreen() {
   const renderTabBar = (props: any) => (
     <TabBar
       {...props}
-      indicatorStyle={{ backgroundColor: theme.colors.primary }}
+      indicatorStyle={{ backgroundColor: colors.primary }}
       style={{ backgroundColor: 'white', elevation: 0, shadowOpacity: 0 }}
       labelStyle={{ color: '#222222', fontWeight: '600', textTransform: 'none' }}
-      activeColor={theme.colors.primary}
+      activeColor={colors.primary}
     />
   );
 
@@ -145,21 +145,20 @@ const styles = StyleSheet.create({
   },
   qrName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.primary,
+    color: colors.primary,
     marginTop: 20,
   },
   rayyanButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 12,
     marginTop: 20,
     minWidth: '60%',
-    shadowColor: theme.colors.primary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -187,7 +186,7 @@ const styles = StyleSheet.create({
   },
   scanOverlayText: {
     fontSize: 16,
-    color: theme.colors.primary,
+    color: colors.primary,
     fontWeight: '600',
     marginLeft: 10,
   },
