@@ -8,8 +8,7 @@ import { colors } from '../../theme/style';
 import { StyleProp, ViewStyle } from 'react-native';
 
 interface AppButtonProps extends RNPButtonProps {
-  // We will define 'primary' and 'secondary' as our main variants
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'white';
 }
 
 export const Button: React.FC<AppButtonProps> = ({
@@ -25,9 +24,8 @@ export const Button: React.FC<AppButtonProps> = ({
 
   // --- Button Logic ---
   if (variant === 'secondary') {
-    // This is our "Frosted Glass" button
-    mode = 'outlined'; // Use outlined to remove Paper's default bg
-    buttonColor = 'transparent'; // We set bg color in the style override
+    mode = 'outlined';
+    buttonColor = 'transparent';
     textColor = colors.white;
     customStyle = {
       borderRadius: 999,
@@ -36,26 +34,35 @@ export const Button: React.FC<AppButtonProps> = ({
       borderWidth: 1,
     };
   }
-  // All other cases default to 'primary' (solid pink)
+
+  // --- White Button Variant ---
+  if (variant === 'white') {
+    mode = 'contained';
+    buttonColor = colors.white;
+    textColor = colors.black;
+    customStyle = {
+      borderRadius: 999,
+      backgroundColor: colors.white,
+      borderColor: colors.white,
+      borderWidth: 1,
+    };
+  }
 
   return (
     <PaperButton
       mode={mode}
       style={[
-        { width: '85%', alignSelf: 'center', borderRadius: 999 }, // Universal size and centering
-        customStyle, // Apply our custom frosted glass style
+        { width: '85%', alignSelf: 'center', borderRadius: 999 },
+        customStyle,
         style,
       ]}
       contentStyle={[
-        {
-          paddingVertical: 10,
-          borderRadius: 120,
-        },
+        { paddingVertical: 10, borderRadius: 120 },
         contentStyle,
       ]}
       buttonColor={buttonColor}
       textColor={textColor}
-      labelStyle={{ fontSize: 18, fontWeight: '600' }} // Match mock
+      labelStyle={{ fontSize: 18, fontWeight: '600' }}
       {...rest}
     />
   );

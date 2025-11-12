@@ -4,13 +4,11 @@ import { useDispatch } from 'react-redux';
 import { login } from '../../slices/authSlice';
 // icons
 import UserIcon from '../../assets/icons/user-solid-full.svg';
-import SendIcon from '../../assets/icons/send.svg';
-import ReceiveIcon from '../../assets/icons/receive.svg';
-import WalletIcon from '../../assets/icons/wallet.svg';
-import ScanIcon from '../../assets/icons/scan.svg';
 import StarIcon from '../../assets/icons/star.svg';
 import ShowIcon from '../../assets/icons/show.svg';
 import HideIcon from '../../assets/icons/hide.svg';
+import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
+import ArrowDownIcon from '../../assets/icons/arrow-down.svg';
 import {
   StyleSheet,
   ScrollView,
@@ -22,6 +20,7 @@ import {
   ImageBackground,
 } from 'react-native';
 import { colors } from '../../theme/style';
+import { Button } from '../../components/ui/Button';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../../navigations/HomeStack';
@@ -30,24 +29,13 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
   'HomeMain'
 >;
-const ActionButton = ({ SvgComponent, label, onPress }: any) => (
-  <TouchableOpacity style={styles.actionItem} onPress={onPress}>
-    <View style={styles.actionIcon}>
-      <SvgComponent width={28} height={28} fill={colors.white} />
-    </View>
-    <Text style={styles.actionLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+
 const HomeScreen = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation
-    <HomeScreenNavigationProp>
-    ();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   const [userName, setUserName] = useState('User');
   const [isBalanceVisible, setIsBalanceVisible] = useState(false);
-  const [balance, setBalance] = useState
-    <number | null>
-    (null);
+  const [balance, setBalance] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hasCard, setHasCard] = useState(false);
   const fetchBalance = async () => {
@@ -123,15 +111,27 @@ const HomeScreen = () => {
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() =>
-          navigation.navigate(hasCard ? 'CardScreen' : 'NoCardScreen')}
+          navigation.navigate(hasCard ? 'CardScreen' : 'NoCardScreen')
+        }
         style={styles.balanceCardWrapper}
       >
-        <ImageBackground source={require('../../assets/bg.png')} style={styles.gradientCard} imageStyle={{ resizeMode: 'contain', transform: [{ rotate: '90deg' }, { scaleX: -1 }, { scale: 3 }], right: 120, top: 10, }} resizeMode="contain" >
+        <ImageBackground
+          source={require('../../assets/bg.png')}
+          style={styles.gradientCard}
+          imageStyle={{
+            resizeMode: 'contain',
+            transform: [{ rotate: '90deg' }, { scaleX: -1 }, { scale: 3 }],
+            right: 120,
+            top: 10,
+          }}
+          resizeMode="contain"
+        >
           <View style={styles.balanceContent}>
             <View style={styles.balanceTitleContainer}>
               <Text style={styles.balanceTitle}>Total Balance</Text>
-              <TouchableOpacity onPress={() =>
-                setIsBalanceVisible(!isBalanceVisible)}>
+              <TouchableOpacity
+                onPress={() => setIsBalanceVisible(!isBalanceVisible)}
+              >
                 {isBalanceVisible ? (
                   <ShowIcon width={24} height={24} fill={colors.white} />
                 ) : (
@@ -142,7 +142,10 @@ const HomeScreen = () => {
             <Text style={styles.balanceAmount}>
               {isBalanceVisible
                 ? balance !== null
-                  ? `Rs. ${new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(balance)}`
+                  ? `Rs. ${new Intl.NumberFormat('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(balance)}`
                   : '...'
                 : '******'}
             </Text>
@@ -151,14 +154,23 @@ const HomeScreen = () => {
       </TouchableOpacity>
       {/* Actions */}
       <View style={styles.actionsContainer}>
-        <ActionButton SvgComponent={SendIcon} label="Send" onPress={() =>
-          navigation.navigate('SendMoney')} />
-        <ActionButton SvgComponent={ReceiveIcon} label="Receive" onPress={() =>
-          navigation.navigate('PaymentScreen')} />
-        <ActionButton SvgComponent={WalletIcon} label="Load" onPress={() =>
-          navigation.navigate('LoadMoneyScreen')} />
-        <ActionButton SvgComponent={ScanIcon} label="Scan" onPress={() =>
-          navigation.navigate('QRCodeScreen')} />
+        <Button
+          variant="primary"
+          icon={() => <ArrowUpIcon width={20} height={20} fill={colors.white} />}
+          onPress={() => navigation.navigate('SendMoney')}
+          style={{ width: 160, marginHorizontal: 2 }}
+        >
+          SEND
+        </Button>
+
+        <Button
+          variant="white"
+          icon={() => <ArrowDownIcon width={20} height={20} fill={colors.black} />}
+          onPress={() => navigation.navigate('PaymentScreen')}
+          style={{ width: 160, marginHorizontal: 2 }}
+        >
+          RECEIVE
+        </Button>
       </View>
       {/* Recent Transactions */}
       <View style={styles.transactionBox}>
@@ -171,7 +183,9 @@ const HomeScreen = () => {
             <Text style={styles.transactionName}>Starbucks</Text>
             <Text style={styles.transactionDate}>July 20, 2024</Text>
           </View>
-          <Text style={[styles.transactionAmount, { color: colors.textDark }]}>-Rs.5.75</Text>
+          <Text style={[styles.transactionAmount, { color: colors.textDark }]}>
+            -Rs.5.75
+          </Text>
         </View>
         <View style={styles.transactionItem}>
           <View style={styles.transactionIcon}>
@@ -181,7 +195,9 @@ const HomeScreen = () => {
             <Text style={styles.transactionName}>From John</Text>
             <Text style={styles.transactionDate}>July 19, 2024</Text>
           </View>
-          <Text style={[styles.transactionAmount, { color: colors.success }]}>+Rs.500.00</Text>
+          <Text style={[styles.transactionAmount, { color: colors.success }]}>
+            +Rs.500.00
+          </Text>
         </View>
       </View>
     </ScrollView>
@@ -195,26 +211,66 @@ const styles = StyleSheet.create({
     backgroundColor: colors.Background, // dark background
   },
   scrollContent: { padding: 24 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  greetingTitle: { fontSize: 24, fontWeight: '700', color: colors.text, maxWidth: 250 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  greetingTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    maxWidth: 250,
+  },
   greetingSubtitle: { fontSize: 16, color: colors.textSecondary, marginTop: 4 },
-  profilePic: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.secondary, justifyContent: 'center', alignItems: 'center' },
+  profilePic: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   balanceCardWrapper: {
     marginBottom: 32,
     borderRadius: 20,
     overflow: 'hidden',
     minHeight: 180,
     ...Platform.select({
-      ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
       android: { elevation: 10 },
     }),
   },
   gradientCard: { flex: 1, padding: 28, justifyContent: 'space-between' },
-  balanceTitleContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  balanceTitle: { fontSize: 16, fontWeight: '500', color: colors.textSecondary },
-  balanceAmount: { fontSize: 36, fontWeight: '700', color: colors.text, marginTop: 8 },
+  balanceTitleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  balanceTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  balanceAmount: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 8,
+  },
   balanceContent: { position: 'relative', zIndex: 10 },
-  actionsContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 32, marginTop: -4 },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+    marginTop: -12,
+  },
   actionItem: { alignItems: 'center' },
   actionIcon: {
     width: 60,
@@ -225,7 +281,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
     ...Platform.select({
-      ios: { shadowColor: colors.secondary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5 },
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+      },
       android: { elevation: 5 },
     }),
   },
@@ -235,13 +296,42 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     ...Platform.select({
-      ios: { shadowColor: colors.text, shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 4, borderColor: colors.frostedBorder, borderWidth: 1 },
+      ios: {
+        shadowColor: colors.text,
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+      },
+      android: {
+        elevation: 4,
+        borderColor: colors.frostedBorder,
+        borderWidth: 1,
+      },
     }),
   },
-  transactionTitle: { fontSize: 20, fontWeight: '600', marginBottom: 16, color: colors.text },
-  transactionItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.frostedBorder },
-  transactionIcon: { width: 45, height: 45, borderRadius: 12, backgroundColor: colors.accent, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  transactionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: colors.text,
+  },
+  transactionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.frostedBorder,
+  },
+  transactionIcon: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
   transactionDetails: { flex: 1 },
   transactionName: { fontSize: 16, fontWeight: '600', color: colors.text },
   transactionDate: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },

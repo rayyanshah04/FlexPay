@@ -4,6 +4,7 @@ import {
     MD3LightTheme as DefaultTheme,
     configureFonts,
 } from 'react-native-paper';
+import { black } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 // --- Centralized Colors ---
 export const colors = {
@@ -25,6 +26,7 @@ export const colors = {
     accent: '#d4f3fdff',
     success: '#34C759',
     Background: '#121212',
+    black: '#000000',
 };
 
 // --- Rayyan Theme Styles ---
