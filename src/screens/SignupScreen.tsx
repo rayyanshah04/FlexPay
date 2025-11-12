@@ -92,8 +92,12 @@ export default function SignupScreen({ navigation }: Props) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState<boolean | null>(null); // New state for phone number validation
+  const [email, setEmail] = useState('');
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState<boolean | null>(null);
 
   const phoneRegex = /^03\d{9}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   useEffect(() => {
     if (phoneNumber) {
@@ -103,26 +107,45 @@ export default function SignupScreen({ navigation }: Props) {
     }
   }, [phoneNumber]);
 
+  useEffect(() => {
+    if (email) {
+      setIsEmailValid(emailRegex.test(email));
+    } else {
+      setIsEmailValid(null);
+    }
+  }, [email]);
+
   const validateInputs = () => {
     const trimmedName = name.trim();
     const trimmedPhoneNumber = phoneNumber.trim();
+    const trimmedEmail = email.trim();
 
-    let isValid = true;
+    if (!trimmedName || !trimmedEmail || !trimmedPhoneNumber || !password) {
+      Alert.alert('Validation Error', 'Please fill in all fields.');
+      return false;
+    }
 
-    if (!trimmedName || !trimmedPhoneNumber || !password) {
-      Alert.alert('Validation Error', 'Please enter all fields');
-      isValid = false;
+    if (!emailRegex.test(trimmedEmail)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return false;
     }
 
     if (!phoneRegex.test(trimmedPhoneNumber)) {
-      isValid = false;
+      Alert.alert(
+        'Invalid Phone Number',
+        'Please enter a valid 11-digit phone number starting with 03.',
+      );
+      return false;
     }
 
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters');
-      isValid = false;
+      Alert.alert(
+        'Weak Password',
+        'Password must be at least 6 characters long.',
+      );
+      return false;
     }
-    return isValid;
+    return true;
   };
 
   const handleSignup = async () => {
@@ -134,7 +157,7 @@ export default function SignupScreen({ navigation }: Props) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, phone_number: phoneNumber, password }),
+        body: JSON.stringify({ name, email, phone_number: phoneNumber, password }),
       });
 
       const data = await response.json();
@@ -146,6 +169,7 @@ export default function SignupScreen({ navigation }: Props) {
       }
 
       Alert.alert('Success', `Account created for ${data.name}`);
+      navigation.navigate('Login');
     } catch (error: any) {
       console.error('Signup Error:', error);
       Alert.alert('Signup Failed', error.message);
@@ -187,6 +211,23 @@ export default function SignupScreen({ navigation }: Props) {
             onBlur={() => setNameFocused(false)}
             isFocused={nameFocused}
             autoCapitalize="words"
+          />
+
+          {isEmailValid === false && (
+            <Text style={styles.errorText}>
+              Please enter a valid email address.
+            </Text>
+          )}
+          <GradientInput
+            placeholder="Email Address"
+            value={email}
+            onChangeText={setEmail}
+            onFocus={() => setEmailFocused(true)}
+            onBlur={() => setEmailFocused(false)}
+            isFocused={emailFocused}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            isValid={isEmailValid}
           />
 
           {isPhoneNumberValid === false && (
