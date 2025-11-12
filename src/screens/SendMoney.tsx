@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,40 +10,103 @@ import {
   View,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
 import ScanIcon from '../assets/icons/scan.svg'; // Using ScanIcon as a search icon for now
 import UserIcon from '../assets/icons/user-solid-full.svg';
 import { RootStackParamList } from '../navigations/StackNavigator';
 import { theme } from '../theme/theme';
+import { API_BASE } from '../config';
+import { selectToken } from '../slices/authSlice';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SendMoney'>;
 
-interface User {
-  id: number;
+interface Beneficiary {
+  nickname: string;
   name: string;
+  iban_or_number: string;
   color: string;
-  iban: string;
 }
 
 export default function SendMoney({ navigation }: Props) {
   const [accountNo, setAccountNo] = useState('');
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [displayedResults, setDisplayedResults] = useState<Beneficiary[]>([]);
+  const token = useSelector(selectToken);
 
-  const users: User[] = [
-    {
-      id: 1,
-      name: 'Muhammad Hussain',
-      iban: 'PK12ABC1234567890',
-      color: '#4ECCA3',
-    },
-    { id: 2, name: 'Ayesha Khan', iban: 'PK34XYZ9876543210', color: '#FF9F45' },
-    { id: 3, name: 'Ali Raza', iban: 'PK78LMN2468135790', color: '#5DA3FA' },
-    { id: 4, name: 'Sara Ahmed', iban: 'PK09QRS1122334455', color: '#F76C6C' },
-  ];
+  const colors = ['#4ECCA3', '#FF9F45', '#5DA3FA', '#F76C6C', '#A162F7', '#4DD0E1'];
+  const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
-  const handleSelect = (user: User) => {
+  useEffect(() => {
+    const fetchBeneficiaries = async () => {
+      if (!token) return;
+      try {
+        const response = await fetch(`${API_BASE}/api/beneficiaries`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          const beneficiariesWithColor = data.beneficiaries.map((b: Omit<Beneficiary, 'color'>) => ({
+            ...b,
+            color: getRandomColor(),
+          }));
+          setBeneficiaries(beneficiariesWithColor);
+          setDisplayedResults(beneficiariesWithColor);
+        } else {
+          console.error('Failed to fetch beneficiaries:', data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching beneficiaries:', error);
+      }
+    };
+    fetchBeneficiaries();
+  }, [token]);
+
+  useEffect(() => {
+    if (!accountNo) {
+      setDisplayedResults(beneficiaries);
+      return;
+    }
+
+    const localFiltered = beneficiaries.filter(b =>
+      (b.nickname || b.name).toLowerCase().includes(accountNo.toLowerCase()) ||
+      b.iban_or_number.includes(accountNo)
+    );
+    setDisplayedResults(localFiltered);
+
+    const isNumberSearch = accountNo.startsWith('03') || accountNo.startsWith('PK04');
+    if (isNumberSearch) {
+      const existsInBeneficiaries = beneficiaries.some(b => b.iban_or_number === accountNo);
+      if (existsInBeneficiaries) {
+        return;
+      }
+
+      const handler = setTimeout(async () => {
+        try {
+          const response = await fetch(`${API_BASE}/api/search_user?q=${accountNo}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (response.ok && data.user) {
+            setDisplayedResults(prev => {
+              const suggested = { ...data.user, color: getRandomColor() };
+              const isAlreadyDisplayed = prev.some(u => u.iban_or_number === suggested.iban_or_number);
+              return isAlreadyDisplayed ? prev : [suggested, ...prev];
+            });
+          }
+        } catch (error) {
+          console.error('Error searching for user:', error);
+        }
+      }, 300);
+
+      return () => clearTimeout(handler);
+    }
+  }, [accountNo, beneficiaries, token]);
+
+  const handleSelect = (user: Beneficiary) => {
     navigation.navigate('ConfirmPayment', {
-      name: user.name,
-      iban: user.iban,
-      amount: '10,000 PKR',
+      name: user.nickname || user.name,
+      iban: user.iban_or_number,
+      amount: '10,000 PKR', // This seems to be a placeholder
     });
   };
 
@@ -57,7 +120,7 @@ export default function SendMoney({ navigation }: Props) {
           <ScanIcon width={20} height={20} fill="#999" />
         </View>
         <TextInput
-          placeholder="Search by name or IBAN..."
+          placeholder="Search by name, phone, or IBAN..."
           value={accountNo}
           onChangeText={setAccountNo}
           autoCapitalize="none"
@@ -66,12 +129,10 @@ export default function SendMoney({ navigation }: Props) {
         />
       </View>
 
-      {/* <Text style={styles.sectionTitle}>Beneficiaries</Text> */}
-
       <ScrollView style={styles.userList} showsVerticalScrollIndicator={false}>
-        {users.map(user => (
+        {displayedResults.map(user => (
           <TouchableOpacity
-            key={user.id}
+            key={user.iban_or_number}
             style={styles.userCard}
             activeOpacity={0.8}
             onPress={() => handleSelect(user)}
@@ -80,8 +141,8 @@ export default function SendMoney({ navigation }: Props) {
               <UserIcon width={22} height={22} fill="#fff" />
             </View>
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userIban}>{user.iban}</Text>
+              <Text style={styles.userName}>{user.nickname || user.name}</Text>
+              <Text style={styles.userIban}>{user.iban_or_number}</Text>
             </View>
           </TouchableOpacity>
         ))}

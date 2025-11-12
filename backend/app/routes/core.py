@@ -82,3 +82,61 @@ def add_beneficiary(current_user):
             "note": note
         }
     })
+
+@bp.route('/beneficiaries', methods=['GET'])
+@token_required
+def get_beneficiaries(current_user):
+    user_id = current_user['id']
+    
+    beneficiaries_data = db.execute(
+        """SELECT b.nickname, b.note, u.name, up.phone_number, up.iban
+        FROM beneficiaries b
+        JOIN users u ON b.beneficiary_user_id = u.id
+        LEFT JOIN user_profiles up ON b.beneficiary_user_id = up.user_id
+        WHERE b.user_id = ?""",
+        user_id
+    )
+
+    beneficiaries_list = []
+    for beneficiary in beneficiaries_data:
+        iban_or_number = None
+        if beneficiary['phone_number']:
+            iban_or_number = beneficiary['phone_number']
+        elif beneficiary['iban']:
+            iban_or_number = beneficiary['iban']
+            
+        beneficiaries_list.append({
+            "nickname": beneficiary['nickname'],
+            "note": beneficiary['note'],
+            "name": beneficiary['name'],
+            "iban_or_number": iban_or_number
+        })
+        
+    return jsonify({"beneficiaries": beneficiaries_list})
+
+@bp.route('/search_user')
+@token_required
+def search_user(current_user):
+    query = request.args.get('q', '')
+    user_id = current_user['id']
+
+    if not query or (not query.startswith('03') and not query.startswith('PK04')):
+        return jsonify({"user": None})
+
+    column = 'phone_number' if query.startswith('03') else 'iban'
+
+    user_data = db.execute(
+        f"SELECT u.name, up.{column} FROM users u JOIN user_profiles up ON u.id = up.user_id WHERE up.{column} = ? AND u.id != ?",
+        query, user_id
+    )
+
+    if user_data:
+        found_user = user_data[0]
+        result = {
+            "nickname": found_user['name'],
+            "name": found_user['name'],
+            "iban_or_number": found_user[column]
+        }
+        return jsonify({"user": result})
+
+    return jsonify({"user": None})
