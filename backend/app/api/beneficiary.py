@@ -2,17 +2,7 @@ from flask import Blueprint, request, jsonify
 from ..database import db
 from ..utils import token_required
 
-bp = Blueprint('core', __name__, url_prefix='/api')
-
-@bp.route('/balance')
-@token_required
-def get_balance(current_user):
-    user_id = current_user['id']
-    balance = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
-    if balance:
-        cash_value = balance[0]['cash']
-        return jsonify({"balance": cash_value})
-    return jsonify({"error": "User not found"}), 404
+bp = Blueprint('beneficiary', __name__, url_prefix='/api')
 
 @bp.route('/add_beneficiary', methods=['POST'])
 @token_required
@@ -88,14 +78,7 @@ def add_beneficiary(current_user):
 def get_beneficiaries(current_user):
     user_id = current_user['id']
     
-    beneficiaries_data = db.execute(
-        """SELECT b.nickname, b.note, u.name, up.phone_number, up.iban
-        FROM beneficiaries b
-        JOIN users u ON b.beneficiary_user_id = u.id
-        LEFT JOIN user_profiles up ON b.beneficiary_user_id = up.user_id
-        WHERE b.user_id = ?""",
-        user_id
-    )
+    beneficiaries_data = db.execute("SELECT beneficiaries.nickname, beneficiaries.note, users.name, user_profiles.phone_number, user_profiles.iban FROM beneficiaries JOIN users ON beneficiaries.beneficiary_user_id = users.id LEFT JOIN user_profiles ON beneficiaries.beneficiary_user_id = user_profiles.user_id WHERE beneficiaries.user_id = ?", user_id)
 
     beneficiaries_list = []
     for beneficiary in beneficiaries_data:

@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import QRScanner from '../components/qrScanner';
-import { theme } from '../theme/theme';
+import QRScanner from '../../components/qrScanner';
+import { theme } from '../../theme/theme';
 
 // --- Import your custom camera icon ---
-import CameraIcon from '../assets/icons/camera.svg';
+import CameraIcon from '../../assets/icons/camera.svg';
 
 // --- Generate QR Code Image (simple placeholder) ---
 const qrCodeImage = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=flexpay-user-12345';

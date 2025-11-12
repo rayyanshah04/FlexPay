@@ -4,7 +4,7 @@ import Icon from '@react-native-vector-icons/ionicons';
 // for name and also see line 63
 import React from 'react';
 import { Text } from 'react-native';
-import { useUserName } from '../hooks/useUserName';
+import { useUserName } from '../../hooks/useUserName';
 
 
 import {
@@ -14,10 +14,10 @@ import {
   View,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { logout } from '../slices/authSlice';
+import { logout } from '../../slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigations/StackNavigator';
+import { RootStackParamList } from '../../navigations/StackNavigator';
 
 const infoItems = [
   { icon: 'shield-checkmark-outline', text: 'Privacy policy' },

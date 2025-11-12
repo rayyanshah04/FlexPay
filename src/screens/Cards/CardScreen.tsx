@@ -6,18 +6,18 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
-import { theme, meshGradientBackground } from '../theme/theme';
+import { theme, meshGradientBackground } from '../../theme/theme';
 
 // for name and also see line 63
 import React from 'react';
 import { Text } from 'react-native';
-import { useUserName } from '../hooks/useUserName';
+import { useUserName } from '../../hooks/useUserName';
 
 // --- SVG IMPORTS ---
-import ShowIcon from '../assets/icons/show.svg';
-import HideIcon from '../assets/icons/hide.svg';
-import FreezeIcon from '../assets/icons/freeze.svg';
-import DeleteIcon from '../assets/icons/delete.svg';
+import ShowIcon from '../../assets/icons/show.svg';
+import HideIcon from '../../assets/icons/hide.svg';
+import FreezeIcon from '../../assets/icons/freeze.svg';
+import DeleteIcon from '../../assets/icons/delete.svg';
 
 // --- Mock SVG for Mastercard Logo ---
 const mastercardXml = `

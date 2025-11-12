@@ -2,20 +2,22 @@
 
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
-import CardScreen from '../screens/CardScreen';
-import LoadMoneyScreen from '../screens/LoadMoneyScreen';
-import PaymentScreen from '../screens/PaymentScreen';
+import HomeScreen from '../screens/Home/HomeScreen';
+import CardScreen from '../screens/Cards/CardScreen';
+import NoCardScreen from '../screens/Cards/NoCardScreen';
+import LoadMoneyScreen from '../screens/Wallet/LoadMoneyScreen';
+import PaymentScreen from '../screens/Payments/PaymentScreen';
 // --- FIX: Import the missing screens ---
-import SendMoney from '../screens/SendMoney';
-import QRCodeScreen from '../screens/QRCodeScreen';
-import AddingBeneficiary from '../screens/AddingBeneficiary';
+import SendMoney from '../screens/Payments/SendMoney';
+import QRCodeScreen from '../screens/Wallet/QRCodeScreen';
+import AddingBeneficiary from '../screens/Payments/AddingBeneficiary';
 // Import other home-related screens
 
 // --- FIX: Update the Param list to match HomeScreen ---
 export type HomeStackParamList = {
   HomeMain: undefined;
   CardScreen: undefined;
+  NoCardScreen: undefined;
   LoadMoneyScreen: undefined; // Renamed from LoadMoney
   PaymentScreen: undefined; // Renamed from Payment
   SendMoney: undefined; // Added
@@ -35,6 +37,15 @@ export default function HomeStack() {
       <Stack.Screen
         name="CardScreen"
         component={CardScreen}
+        options={{
+          title: 'My Cards',
+          headerTitleAlign: 'center',
+          headerShadowVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="NoCardScreen"
+        component={NoCardScreen}
         options={{
           title: 'My Cards',
           headerTitleAlign: 'center',

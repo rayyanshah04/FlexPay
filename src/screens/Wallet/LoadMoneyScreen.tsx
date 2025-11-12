@@ -9,11 +9,11 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
-import { theme } from '../theme/theme';
+import { theme } from '../../theme/theme';
 
 // --- Custom SVG Imports ---
-import ClipboardIcon from '../assets/icons/clipboard.svg';
-import ClipboardCheckIcon from '../assets/icons/clipboard-check.svg';
+import ClipboardIcon from '../../assets/icons/clipboard.svg';
+import ClipboardCheckIcon from '../../assets/icons/clipboard-check.svg';
 
 export default function LoadMoneyScreen() {
   const phoneNumber = '+1 555 123 4567';

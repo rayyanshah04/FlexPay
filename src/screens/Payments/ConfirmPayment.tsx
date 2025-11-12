@@ -11,8 +11,8 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { Button } from '../components/ui/Button';
-import { RootStackParamList } from '../navigations/StackNavigator';
+import { Button } from '../../components/ui/Button';
+import { RootStackParamList } from '../../navigations/StackNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConfirmPayment'>;
 

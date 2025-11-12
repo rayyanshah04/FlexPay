@@ -13,15 +13,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigations/StackNavigator';
-import { themeStyles } from '../theme/style';
+import { RootStackParamList } from '../../navigations/StackNavigator';
+import { themeStyles } from '../../theme/style';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Button } from '../components/ui/Button';
+import { Button } from '../../components/ui/Button';
 import LinearGradient from 'react-native-linear-gradient';
 // Import SVG icons
-import HideIcon from '../assets/icons/hide.svg';
-import ShowIcon from '../assets/icons/show.svg';
-import { API_BASE } from '../config';
+import HideIcon from '../../assets/icons/hide.svg';
+import ShowIcon from '../../assets/icons/show.svg';
+import { API_BASE } from '../../config';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -157,7 +157,7 @@ export default function LoginScreen({ navigation }: Props) {
         >
           <View style={styles.logoInner}>
             <Image
-              source={require('../assets/logo-cropped.png')}
+              source={require('../../assets/logo-cropped.png')}
               style={styles.logoImage}
               resizeMode="contain"
             />

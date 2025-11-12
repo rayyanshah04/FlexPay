@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import HomeStack from './HomeStack';
-import MoreScreen from '../screens/MoreScreen';
+import MoreScreen from '../screens/Home/MoreScreen';
 import { theme } from '../theme/theme';
 
 // --- Import your custom icons ---

@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,12 +13,12 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
-import ScanIcon from '../assets/icons/scan.svg'; // Using ScanIcon as a search icon for now
-import UserIcon from '../assets/icons/user-solid-full.svg';
-import { RootStackParamList } from '../navigations/StackNavigator';
-import { theme } from '../theme/theme';
-import { API_BASE } from '../config';
-import { selectToken } from '../slices/authSlice';
+import ScanIcon from '../../assets/icons/scan.svg';
+import UserIcon from '../../assets/icons/user-solid-full.svg';
+import { RootStackParamList } from '../../navigations/StackNavigator';
+import { theme } from '../../theme/theme';
+import { API_BASE } from '../../config';
+import { selectToken } from '../../slices/authSlice';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SendMoney'>;
 
@@ -31,35 +33,44 @@ export default function SendMoney({ navigation }: Props) {
   const [accountNo, setAccountNo] = useState('');
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [displayedResults, setDisplayedResults] = useState<Beneficiary[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const token = useSelector(selectToken);
 
   const colors = ['#4ECCA3', '#FF9F45', '#5DA3FA', '#F76C6C', '#A162F7', '#4DD0E1'];
   const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
-  useEffect(() => {
-    const fetchBeneficiaries = async () => {
-      if (!token) return;
-      try {
-        const response = await fetch(`${API_BASE}/api/beneficiaries`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        if (response.ok) {
-          const beneficiariesWithColor = data.beneficiaries.map((b: Omit<Beneficiary, 'color'>) => ({
-            ...b,
-            color: getRandomColor(),
-          }));
-          setBeneficiaries(beneficiariesWithColor);
-          setDisplayedResults(beneficiariesWithColor);
-        } else {
-          console.error('Failed to fetch beneficiaries:', data.error);
-        }
-      } catch (error) {
-        console.error('Error fetching beneficiaries:', error);
+  const fetchBeneficiaries = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/beneficiaries`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        const beneficiariesWithColor = data.beneficiaries.map((b: Omit<Beneficiary, 'color'>) => ({
+          ...b,
+          color: getRandomColor(),
+        }));
+        setBeneficiaries(beneficiariesWithColor);
+        setDisplayedResults(beneficiariesWithColor);
+      } else {
+        console.error('Failed to fetch beneficiaries:', data.error);
       }
-    };
-    fetchBeneficiaries();
+    } catch (error) {
+      console.error('Error fetching beneficiaries:', error);
+    }
   }, [token]);
+
+  useEffect(() => {
+    fetchBeneficiaries();
+  }, [fetchBeneficiaries]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchBeneficiaries();
+    setRefreshing(false);
+  }, [fetchBeneficiaries]);
 
   useEffect(() => {
     if (!accountNo) {
@@ -81,6 +92,7 @@ export default function SendMoney({ navigation }: Props) {
       }
 
       const handler = setTimeout(async () => {
+        setIsSearching(true);
         try {
           const response = await fetch(`${API_BASE}/api/search_user?q=${accountNo}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -95,6 +107,8 @@ export default function SendMoney({ navigation }: Props) {
           }
         } catch (error) {
           console.error('Error searching for user:', error);
+        } finally {
+          setIsSearching(false);
         }
       }, 300);
 
@@ -128,8 +142,18 @@ export default function SendMoney({ navigation }: Props) {
           style={styles.input}
         />
       </View>
+      {isSearching && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator style={styles.loadingIndicator} color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Searching...</Text>
+        </View>
+      )}
 
-      <ScrollView style={styles.userList} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.userList}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         {displayedResults.map(user => (
           <TouchableOpacity
             key={user.iban_or_number}
@@ -203,6 +227,21 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#222',
+  },
+  loadingIndicator: {
+    marginRight: 8,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -14,
+    marginBottom: 10,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
   },
   sectionTitle: {
     fontSize: 18,

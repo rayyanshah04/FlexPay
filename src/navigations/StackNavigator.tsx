@@ -4,16 +4,16 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import WelcomeScreen from '../screens/WelcomeScreen';
-import LoginScreen from '../screens/LoginScreen';
-import SignupScreen from '../screens/SignupScreen';
+import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
+import LoginScreen from '../screens/Auth/LoginScreen';
+import SignupScreen from '../screens/Auth/SignupScreen';
 import BottomBar from './BottomBar'; // Tab navigator
-import PaymentScreen from '../screens/PaymentScreen';
+import PaymentScreen from '../screens/Payments/PaymentScreen';
 import { themeStyles } from '../theme/style';
 import { StyleSheet, Text, View } from 'react-native';
-import QRCodeScanner from '../screens/QRCodeScreen';
-import SendMoney from '../screens/SendMoney';
-import ConfirmPayment from '../screens/ConfirmPayment';
+import QRCodeScanner from '../screens/Wallet/QRCodeScreen';
+import SendMoney from '../screens/Payments/SendMoney';
+import ConfirmPayment from '../screens/Payments/ConfirmPayment';
 
 export type RootStackParamList = {
   Welcome: undefined;

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 // import Ionicons from 'react-native-vector-icons/Ionicons'; // --- REMOVED ---
-import BackspaceIcon from '../assets/icons/backspace.svg'; // --- ADDED ---
+import BackspaceIcon from '../../assets/icons/backspace.svg'; // --- ADDED ---
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { HomeStackParamList } from '../navigations/HomeStack'; // Use HomeStack
-import { Button } from '../components/ui/Button'; // Import our Button
+import { HomeStackParamList } from '../../navigations/HomeStack'; // Use HomeStack
+import { Button } from '../../components/ui/Button'; // Import our Button
 
 // --- FIX: Use the correct type from HomeStack ---
 type Props = NativeStackScreenProps<HomeStackParamList, 'PaymentScreen'>;

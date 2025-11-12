@@ -2,10 +2,10 @@ import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigations/StackNavigator';
-import { themeStyles } from '../theme/style';
-import { Button } from '../components/ui/Button';
+import { themeStyles } from '../../theme/style';
+import { Button } from '../../components/ui/Button';
 import LinearGradient from 'react-native-linear-gradient';
-import { theme, meshGradientBackground } from '../theme/theme';
+import { theme, meshGradientBackground } from '../../theme/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
@@ -27,7 +27,7 @@ export default function WelcomeScreen({ navigation }: Props) {
       {/* Frosted Glass Logo Container */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/logo-cropped.png')}
+          source={require('../../assets/logo-cropped.png')}
           style={styles.logo}
           resizeMode="contain"
         />

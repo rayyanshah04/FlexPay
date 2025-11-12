@@ -2,21 +2,21 @@ import LinearGradient from 'react-native-linear-gradient';
 
 // for username //
 import React, { useState, useEffect } from 'react';
-import { loadUserName } from '../utils/user.ts';
+import { loadUserName } from '../../utils/user.ts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
-import { login } from '../slices/authSlice';
+import { login } from '../../slices/authSlice';
 
 
 //icons import
-import UserIcon from '../assets/icons/user-solid-full.svg';
-import SendIcon from '../assets/icons/send.svg';
-import ReceiveIcon from '../assets/icons/receive.svg';
-import WalletIcon from '../assets/icons/wallet.svg';
-import ScanIcon from '../assets/icons/scan.svg';
-import StarIcon from '../assets/icons/star.svg';
-import ShowIcon from '../assets/icons/show.svg';
-import HideIcon from '../assets/icons/hide.svg';
+import UserIcon from '../../assets/icons/user-solid-full.svg';
+import SendIcon from '../../assets/icons/send.svg';
+import ReceiveIcon from '../../assets/icons/receive.svg';
+import WalletIcon from '../../assets/icons/wallet.svg';
+import ScanIcon from '../../assets/icons/scan.svg';
+import StarIcon from '../../assets/icons/star.svg';
+import ShowIcon from '../../assets/icons/show.svg';
+import HideIcon from '../../assets/icons/hide.svg';
 
 import {
   StyleSheet,
@@ -28,13 +28,13 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { theme, meshGradientBackground } from '../theme/theme';
+import { theme, meshGradientBackground } from '../../theme/theme';
 
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HomeStackParamList } from '../navigations/HomeStack';
-import { API_BASE } from '../config';
+import { HomeStackParamList } from '../../navigations/HomeStack';
+import { API_BASE } from '../../config';
 
 const api = {
   call: (detail: string) => {
@@ -244,6 +244,7 @@ const HomeScreen = () => {
   const [isBalanceVisible, setIsBalanceVisible] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [hasCard, setHasCard] = useState(false);
 
   const fetchBalance = async () => {
     try {
@@ -277,6 +278,37 @@ const HomeScreen = () => {
     }
   };
 
+  const fetchHasCard = async () => {
+    try {
+      const userDetails = await AsyncStorage.getItem('userDetails');
+      if (!userDetails) {
+        throw new Error("User details not found");
+      }
+
+      const parsedDetails = JSON.parse(userDetails);
+      const token = parsedDetails.token;
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const response = await fetch(`${API_BASE}/api/has_card`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch has_card');
+      }
+
+      const data = await response.json();
+      setHasCard(data.has_card);
+    } catch (error) {
+      console.error("Failed to fetch has_card:", error);
+    }
+  };
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     fetchBalance().finally(() => setRefreshing(false));
@@ -291,6 +323,7 @@ const HomeScreen = () => {
         dispatch(login(parsed));
       }
       await fetchBalance();
+      await fetchHasCard();
     };
 
     fetchUserAndBalance();
@@ -317,7 +350,7 @@ const HomeScreen = () => {
       {/* Balance Card */}
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('CardScreen')}
+        onPress={() => navigation.navigate(hasCard ? 'CardScreen' : 'NoCardScreen')}
       >
         <View style={[styles.gradientCard, styles.shadow, meshGradientBackground.container]}>
           {meshGradientBackground.gradients.map((gradient, index) => (

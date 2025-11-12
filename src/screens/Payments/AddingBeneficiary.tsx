@@ -11,15 +11,15 @@ import {
   TextInput,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigations/StackNavigator';
-import { theme } from '../theme/theme';
-import UserIcon from '../assets/icons/user-solid-full.svg';
-import PhoneIcon from '../assets/icons/send.svg';
-import IbanIcon from '../assets/icons/wallet.svg';
-import NoteIcon from '../assets/icons/clipboard.svg';
+import { RootStackParamList } from '../../navigations/StackNavigator';
+import { theme } from '../../theme/theme';
+import UserIcon from '../../assets/icons/user-solid-full.svg';
+import PhoneIcon from '../../assets/icons/send.svg';
+import IbanIcon from '../../assets/icons/wallet.svg';
+import NoteIcon from '../../assets/icons/clipboard.svg';
 import { useSelector } from 'react-redux';
-import { selectToken } from '../slices/authSlice';
-import { API_BASE } from '../config';
+import { selectToken } from '../../slices/authSlice';
+import { API_BASE } from '../../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddingBeneficiary'>;
 

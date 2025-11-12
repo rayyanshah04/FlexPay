@@ -14,14 +14,14 @@ import {
 } from 'react-native';
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigations/StackNavigator';
-import { themeStyles } from '../theme/style';
-import { Button } from '../components/ui/Button';
+import { RootStackParamList } from '../../navigations/StackNavigator';
+import { themeStyles } from '../../theme/style';
+import { Button } from '../../components/ui/Button';
 import LinearGradient from 'react-native-linear-gradient';
-import HideIcon from '../assets/icons/hide.svg';
-import ShowIcon from '../assets/icons/show.svg';
+import HideIcon from '../../assets/icons/hide.svg';
+import ShowIcon from '../../assets/icons/show.svg';
 
-import { API_BASE } from '../config';
+import { API_BASE } from '../../config';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
@@ -194,7 +194,7 @@ export default function SignupScreen({ navigation }: Props) {
           >
             <View style={styles.logoInner}>
               <Image
-                source={require('../assets/logo-cropped.png')}
+                source={require('../../assets/logo-cropped.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
