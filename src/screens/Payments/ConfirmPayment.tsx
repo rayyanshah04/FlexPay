@@ -1,83 +1,174 @@
-import FontAwesome from '@react-native-vector-icons/fontawesome';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import {
   Alert,
-  KeyboardAvoidingView,
+  ScrollView,
   Platform,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { useTheme } from 'react-native-paper';
 import { Button } from '../../components/ui/Button';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import UserIcon from '../../assets/icons/user-solid-full.svg';
+import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConfirmPayment'>;
 
 const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const {
     name = 'Muhammad Hussain',
     iban = 'PK12ABC1234567890',
-    amount = '10,000 PKR',
+    amount: initialAmount = '10,000',
+    phone = '',
   } = route.params || {};
 
-  const theme = useTheme();
+  // Extract phone number from IBAN if not provided directly
+  const phoneNumber = phone || iban.replace(/^.*?(\d+)$/, '$1');
+
+  const [amount, setAmount] = useState<string>(initialAmount.replace(' PKR', ''));
   const [note, setNote] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAmountChange = (text: string) => {
+    // Remove non-numeric characters except commas and periods
+    const cleaned = text.replace(/[^0-9.,]/g, '');
+    setAmount(cleaned);
+  };
 
   const handleConfirm = () => {
-    Alert.alert('✅ Payment Confirmed', `You have sent ${amount} to ${name}.`, [
-      { text: 'OK', onPress: () => navigation.navigate('AppTabs') },
-    ]);
+    if (!amount || amount === '0') {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      
+      // Generate a transaction ID
+      const transactionId = `TXN${Date.now().toString().slice(-10)}`;
+      
+      // Navigate to success screen
+      navigation.navigate('PaymentSuccess', {
+        name,
+        amount,
+        transactionId,
+        phone: phoneNumber,
+      });
+    }, 1500);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <Text style={styles.title}>Confirm Payment</Text>
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 100,
+            paddingBottom: insets.bottom + 100,
+            paddingHorizontal: 24,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.iconContainer}>
+            <ArrowUpIcon width={36} height={36} fill={colors.white} style={{ transform: [{ rotate: '45deg' }] }} />
+          </View>
+          <Text style={styles.title}>Confirm Payment</Text>
+          <Text style={styles.subtitle}>
+            Review payment details before confirming
+          </Text>
+        </View>
 
-      {/* Recipient Summary Card */}
-      <View style={styles.summaryCard}>
-        <View
-          style={[styles.avatar, { backgroundColor: colors.primary }]}
+        {/* Recipient Card */}
+        <View style={styles.recipientCard}>
+          <Text style={styles.sectionTitle}>Sending to</Text>
+          <View style={styles.recipientInfo}>
+            <View style={styles.avatar}>
+              <UserIcon width={28} height={28} fill={colors.white} />
+            </View>
+            <View style={styles.recipientDetails}>
+              <Text style={styles.recipientName}>{name}</Text>
+              <Text style={styles.recipientIban}>{iban}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Amount Card */}
+        <View style={styles.amountCard}>
+          <Text style={styles.sectionTitle}>Amount</Text>
+          <View style={styles.amountDisplay}>
+            <View style={styles.amountInputWrapper}>
+              <Text style={styles.currencySymbol}>Rs.</Text>
+              <TextInput
+                style={styles.amountInput}
+                value={amount}
+                onChangeText={handleAmountChange}
+                keyboardType="numeric"
+                placeholder="0"
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+            <Text style={styles.amountLabel}>Pakistani Rupees</Text>
+          </View>
+        </View>
+
+        {/* Note Section */}
+        <View style={styles.noteSection}>
+          <Text style={styles.sectionTitle}>Add Note (Optional)</Text>
+          <View style={styles.noteInputWrapper}>
+            <TextInput
+              style={styles.noteInput}
+              placeholder="Write a message..."
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              numberOfLines={4}
+              value={note}
+              onChangeText={setNote}
+              textAlignVertical="top"
+            />
+          </View>
+        </View>
+
+        {/* Summary Details */}
+        <View style={styles.summarySection}>
+          <Text style={styles.sectionTitle}>Transaction Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Transfer Amount</Text>
+            <Text style={styles.summaryValue}>Rs. {amount}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Transaction Fee</Text>
+            <Text style={styles.summaryValue}>Rs. 0.00</Text>
+          </View>
+          <View style={[styles.summaryRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total Amount</Text>
+            <Text style={styles.totalValue}>Rs. {amount}</Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Button */}
+      <View style={styles.bottomButtonContainer}>
+        <Button
+          variant="primary"
+          onPress={handleConfirm}
+          disabled={isLoading}
         >
-          <FontAwesome name="user" size={24} color={colors.white} />
-        </View>
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>{name}</Text>
-          <Text style={styles.userIban}>{iban}</Text>
-        </View>
+          {isLoading ? 'Processing...' : 'Confirm & Send'}
+        </Button>
       </View>
-
-      {/* Amount Section */}
-      <View style={styles.amountBox}>
-        <Text style={styles.amountLabel}>Amount</Text>
-        <Text style={styles.amountValue}>{amount}</Text>
-      </View>
-
-      {/* Note Section */}
-      <View style={styles.noteContainer}>
-        <Text style={styles.noteLabel}>Add a Note (optional)</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="Write a short message..."
-          placeholderTextColor={colors.placeholder}
-          multiline
-          numberOfLines={4}
-          value={note}
-          onChangeText={setNote}
-          textAlignVertical="top"
-        />
-      </View>
-
-      <Button onPress={handleConfirm}>
-        <Text style={styles.confirmText}>Confirm Payment</Text>
-      </Button>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -86,101 +177,188 @@ export default ConfirmPayment;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
-    paddingHorizontal: 20,
-    paddingTop: 60,
+    backgroundColor: colors.Background,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.textDark,
-    marginBottom: 25,
-  },
-  summaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    shadowColor: colors.textDark,
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  userInfo: {
+  scrollView: {
     flex: 1,
   },
-  userName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: colors.textDark,
+  scrollContent: {
+    paddingBottom: 120,
   },
-  userIban: {
+  headerSection: {
+    marginTop: -60,
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  iconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: colors.success,
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  recipientCard: {
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
+    marginBottom: 20,
+  },
+  recipientInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  recipientDetails: {
+    flex: 1,
+  },
+  recipientName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  recipientIban: {
     fontSize: 13,
     color: colors.textSecondary,
-    marginTop: 2,
+    fontFamily: 'monospace',
   },
-  amountBox: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 15,
-    marginTop: 20,
-    shadowColor: colors.textDark,
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
+  amountCard: {
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
+    marginBottom: 20,
   },
-  amountLabel: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    marginBottom: 6,
+  amountDisplay: {
+    alignItems: 'center',
+    paddingVertical: 12,
   },
-  amountValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textDark,
-  },
-  noteContainer: {
-    marginTop: 25,
-  },
-  noteLabel: {
-    fontSize: 16,
-    color: colors.textDark,
+  amountInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
-  textArea: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.frostedBorder,
-    padding: 12,
-    fontSize: 15,
-    color: colors.textDark,
-    height: 120,
-  },
-  confirmButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginTop: 35,
-    alignItems: 'center',
-    shadowColor: colors.primary,
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  confirmText: {
-    color: colors.white,
-    fontSize: 17,
+  currencySymbol: {
+    fontSize: 28,
     fontWeight: '700',
+    color: colors.text,
+    marginRight: 6,
+  },
+  amountInput: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    minWidth: 80,
+    maxWidth: 150,
+    padding: 0,
+  },
+  amountLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  noteSection: {
+    marginBottom: 20,
+  },
+  noteInputWrapper: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
+    padding: 16,
+  },
+  noteInput: {
+    fontSize: 15,
+    color: colors.text,
+    minHeight: 100,
+  },
+  summarySection: {
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
+    marginBottom: 20,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.buttonSecondaryBorder,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  summaryValue: {
+    fontSize: 15,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  totalRow: {
+    borderBottomWidth: 0,
+    paddingTop: 16,
+    marginTop: 8,
+    borderTopWidth: 2,
+    borderTopColor: colors.buttonSecondaryBorder,
+  },
+  totalLabel: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '700',
+  },
+  totalValue: {
+    fontSize: 20,
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 24,
+    paddingBottom: 40,
+    backgroundColor: colors.Background,
   },
 });

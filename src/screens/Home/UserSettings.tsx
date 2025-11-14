@@ -11,39 +11,152 @@ import {
 import { colors } from '../../theme/style';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { HomeStackParamList } from '../../navigations/HomeStack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
 import { Button } from '../../components/ui/Button';
+import { API_BASE } from '../../config';
+import { useFocusEffect } from '@react-navigation/native';
+
+type UserSettingsNavigationProp = NativeStackNavigationProp<HomeStackParamList, 'UserSettings'>;
 
 export default function UserSettings() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<UserSettingsNavigationProp>();
   const [userName, setUserName] = useState('');
   const [userPhone, setUserPhone] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [originalData, setOriginalData] = useState({ name: '', phone: '', email: '' });
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const userData = await AsyncStorage.getItem('userDetails');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUserName(parsed.name || '');
-        setUserPhone(parsed.phone || '');
-        setUserEmail(parsed.email || '');
+  const fetchUserProfile = async () => {
+    try {
+      const userDetails = await AsyncStorage.getItem('userDetails');
+      if (!userDetails) return;
+      
+      const parsed = JSON.parse(userDetails);
+      const token = parsed.token;
+
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserName(data.name || '');
+        setUserPhone(data.phone || '');
+        setUserEmail(data.email || '');
+        setOriginalData({ name: data.name, phone: data.phone, email: data.email });
       }
-    };
-    fetchUserDetails();
-  }, []);
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
+  };
 
-  const handleSaveProfile = () => {
-    Alert.alert('Success', 'Profile will be updated');
-    // TODO: Implement backend API call
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserProfile();
+    }, [])
+  );
+
+  const handleSaveProfile = async () => {
+    if (!userName.trim()) {
+      Alert.alert('Error', 'Name is required');
+      return;
+    }
+
+    if (!userPhone.trim()) {
+      Alert.alert('Error', 'Phone number is required');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const userDetails = await AsyncStorage.getItem('userDetails');
+      if (!userDetails) throw new Error('User details not found');
+      
+      const parsed = JSON.parse(userDetails);
+      const token = parsed.token;
+
+      const response = await fetch(`${API_BASE}/api/profile/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: userName,
+          phone: userPhone,
+          email: userEmail,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile');
+      }
+
+      // Update local storage
+      parsed.name = userName;
+      parsed.phone = userPhone;
+      parsed.email = userEmail;
+      await AsyncStorage.setItem('userDetails', JSON.stringify(parsed));
+
+      setOriginalData({ name: userName, phone: userPhone, email: userEmail });
+      Alert.alert('Success', 'Profile updated successfully');
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChangePassword = () => {
-    Alert.alert('Change Password', 'Password change will be implemented');
-    // TODO: Implement backend API call
+    navigation.navigate('ChangePassword');
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const userDetails = await AsyncStorage.getItem('userDetails');
+              if (!userDetails) throw new Error('User details not found');
+              
+              const parsed = JSON.parse(userDetails);
+              const token = parsed.token;
+
+              const response = await fetch(`${API_BASE}/api/account/delete`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+
+              const data = await response.json();
+
+              if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete account');
+              }
+
+              await AsyncStorage.clear();
+              Alert.alert('Account Deleted', 'Your account has been deleted successfully');
+              // Navigation to login will happen automatically when AsyncStorage is cleared
+            } catch (error: any) {
+              Alert.alert('Error', error.message);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleLogout = async () => {
@@ -54,7 +167,6 @@ export default function UserSettings() {
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.clear();
-          // TODO: Navigate to login screen
         },
       },
     ]);
@@ -329,6 +441,24 @@ const styles = StyleSheet.create({
   settingSubtitle: {
     fontSize: 13,
     color: colors.textSecondary,
+  },
+  dangerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.error,
+    marginBottom: 16,
+  },
+  deleteButton: {
+    backgroundColor: colors.error,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.white,
   },
   logoutButton: {
     backgroundColor: 'transparent',

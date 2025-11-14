@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,6 +7,8 @@ import {
   ImageBackground,
   Image,
   Dimensions,
+  Alert,
+  Platform,
 } from 'react-native';
 import { colors } from '../../theme/style';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,23 +19,42 @@ import BackIcon from '../../assets/icons/backspace.svg';
 import QRScanner from '../../components/qrScanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
-
-const qrCodeImage =
-  'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=flexpay-user-12345&bgcolor=121212&color=FFFFFF&qzone=1';
+import ViewShot from 'react-native-view-shot';
+import Share from 'react-native-share';
+import { API_BASE } from '../../config';
 
 export default function QRCodeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const viewShotRef = useRef<ViewShot>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
   const [userName, setUserName] = useState('User');
+  const [userPhone, setUserPhone] = useState('');
+  const [qrCodeImage, setQrCodeImage] = useState('');
 
   useEffect(() => {
     const fetchUserDetails = async () => {
-      const userData = await AsyncStorage.getItem('userDetails');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUserName(parsed.name || 'User');
+      try {
+        const userData = await AsyncStorage.getItem('userDetails');
+        if (userData) {
+          const parsed = JSON.parse(userData);
+          const token = parsed.token;
+
+          const response = await fetch(`${API_BASE}/api/qr-data`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setUserName(data.name || 'User');
+            setUserPhone(data.phone || '');
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.qr_data)}&bgcolor=454545&color=FFFFFF&qzone=1`;
+            setQrCodeImage(qrUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch QR data:', error);
       }
     };
     fetchUserDetails();
@@ -44,6 +65,30 @@ export default function QRCodeScreen() {
     if (data) {
       alert(`Scanned QR Code: ${data}`);
       setIsScanning(false);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      if (!viewShotRef.current) return;
+
+      // Capture the QR card as an image
+      const uri = await viewShotRef.current.capture();
+      
+      // Share the image
+      await Share.open({
+        url: Platform.OS === 'android' ? `file://${uri}` : uri,
+        type: 'image/jpeg',
+        title: 'My FlexPay QR Code',
+        subject: 'Pay me on FlexPay',
+      });
+    } catch (error: any) {
+      if (error.message && error.message.includes('User did not share')) {
+        // User cancelled, do nothing
+        return;
+      }
+      Alert.alert('Error', 'Failed to share QR code');
+      console.error('Share error:', error);
     }
   };
 
@@ -90,14 +135,27 @@ export default function QRCodeScreen() {
               <Text style={styles.cardTitle}>Receive Money</Text>
             </View>
 
-            <View style={styles.qrCodeContainer}>
-              <Image source={{ uri: qrCodeImage }} style={styles.qrImage} />
-            </View>
+            <ViewShot ref={viewShotRef} options={{ format: 'jpg', quality: 0.9 }}>
+              <View style={styles.shareableContent}>
+                <View style={styles.qrCodeContainer}>
+                  {qrCodeImage ? (
+                    <Image source={{ uri: qrCodeImage }} style={styles.qrImage} />
+                  ) : (
+                    <View style={styles.qrPlaceholder} />
+                  )}
+                </View>
 
-            <View style={styles.cardBottom}>
-              <UserIcon width={24} height={24} fill={colors.textSecondary} />
-              <Text style={styles.userName}>{userName}</Text>
-            </View>
+                <View style={styles.cardBottom}>
+                  <View style={styles.userInfoContainer}>
+                    <UserIcon width={24} height={24} fill={colors.textSecondary} />
+                    <View style={styles.userTextContainer}>
+                      <Text style={styles.userName}>{userName}</Text>
+                      <Text style={styles.userPhone}>{userPhone}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </ViewShot>
           </View>
         </View>
 
@@ -108,7 +166,7 @@ export default function QRCodeScreen() {
           >
             <ScanIcon width={32} height={32} fill={colors.white} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
             <UploadIcon width={32} height={32} fill={colors.white} />
           </TouchableOpacity>
         </View>
@@ -163,16 +221,24 @@ const styles = StyleSheet.create({
   cardTop: {
     width: '100%',
     alignItems: 'center',
+    marginBottom: 16 * SCALE,
   },
   cardTitle: {
     fontSize: 20 * SCALE,
     fontWeight: '600',
     color: colors.text,
   },
+  shareableContent: {
+    backgroundColor: colors.Background,
+    padding: 24 * SCALE,
+    alignItems: 'center',
+    borderRadius: 24,
+  },
   qrCodeContainer: {
     padding: 10,
     backgroundColor: colors.secondary,
     borderRadius: 20,
+    marginBottom: 20 * SCALE,
   },
   qrImage: {
     width: CARD_WIDTH * 0.65,
@@ -180,18 +246,36 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   cardBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: '100%',
     backgroundColor: colors.secondary,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,
   },
-  userName: {
-    fontSize: 16 * SCALE,
-    fontWeight: '500',
-    color: colors.text,
+  userInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userTextContainer: {
     marginLeft: 10,
+    flex: 1,
+  },
+  userName: {
+    fontSize: 12 * SCALE,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  userPhone: {
+    fontSize: 13 * SCALE,
+    fontWeight: '400',
+    color: colors.textSecondary,
+    marginTop: -1,
+  },
+  qrPlaceholder: {
+    width: CARD_WIDTH * 0.65,
+    height: CARD_WIDTH * 0.65,
+    backgroundColor: colors.secondary,
+    borderRadius: 12,
   },
   actionContainer: {
     flexDirection: 'row',

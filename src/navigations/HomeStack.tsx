@@ -13,6 +13,7 @@ import SendMoney from '../screens/Payments/SendMoney';
 import QRCodeScreen from '../screens/Wallet/QRCodeScreen';
 import AddingBeneficiary from '../screens/Payments/AddingBeneficiary';
 import UserSettings from '../screens/Home/UserSettings';
+import ChangePasswordScreen from '../screens/Home/ChangePasswordScreen';
 import { colors } from '../theme/style';
 // Import other home-related screens
 
@@ -28,6 +29,7 @@ export type HomeStackParamList = {
   QRCodeScreen: undefined; // Added
   AddingBeneficiary: undefined; // Added
   UserSettings: undefined; // Added
+  ChangePassword: undefined; // Added
 };
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -134,6 +136,14 @@ export default function HomeStack() {
         component={UserSettings}
         options={{
           title: 'Settings',
+          ...defaultHeaderOptions,
+        }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{
+          title: 'Change Password',
           ...defaultHeaderOptions,
         }}
       />

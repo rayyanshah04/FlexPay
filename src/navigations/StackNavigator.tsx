@@ -14,6 +14,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import QRCodeScanner from '../screens/Wallet/QRCodeScreen';
 import SendMoney from '../screens/Payments/SendMoney';
 import ConfirmPayment from '../screens/Payments/ConfirmPayment';
+import PaymentSuccess from '../screens/Payments/PaymentSuccess';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -27,6 +28,13 @@ export type RootStackParamList = {
     name: string;
     iban: string;
     amount: string;
+    phone?: string;
+  };
+  PaymentSuccess: {
+    name: string;
+    amount: string;
+    transactionId: string;
+    phone?: string;
   };
 };
 
@@ -46,6 +54,7 @@ const screens: {
   { name: 'QRCode', component: QRCodeScanner },
   { name: 'SendMoney', component: SendMoney },
   { name: 'ConfirmPayment', component: ConfirmPayment },
+  { name: 'PaymentSuccess', component: PaymentSuccess },
 ];
 
 export default function StackNavigator() {
