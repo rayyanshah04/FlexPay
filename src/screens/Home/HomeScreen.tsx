@@ -89,6 +89,42 @@ const HomeScreen = () => {
     };
     fetchUserAndBalance();
   }, [dispatch]);
+
+  const transactions = [
+    {
+      id: 1,
+      name: 'Dribble',
+      time: 'Today, 15:10',
+      amount: '-$142.00',
+      type: 'transfer',
+      icon: '🎯',
+    },
+    {
+      id: 2,
+      name: 'Trent Bolt',
+      time: 'Yesterday, 09:45',
+      amount: '+$74.00',
+      type: 'received',
+      icon: '⚡',
+    },
+    {
+      id: 3,
+      name: 'Apple Services',
+      time: 'Yesterday, 05:10',
+      amount: '-$12.00',
+      type: 'transfer',
+      icon: '🍎',
+    },
+    {
+      id: 4,
+      name: 'Ryne LTD',
+      time: '2 Aug, 09:11',
+      amount: '-$18.00',
+      type: 'transfer',
+      icon: '🚀',
+    },
+  ];
+
   return (
     <ScrollView
       style={styles.container}
@@ -173,31 +209,48 @@ const HomeScreen = () => {
         </Button>
       </View>
       {/* Recent Transactions */}
-      <View style={styles.transactionBox}>
-        <Text style={styles.transactionTitle}>Recent Transactions</Text>
-        <View style={styles.transactionItem}>
-          <View style={styles.transactionIcon}>
-            <StarIcon width={24} height={24} fill={colors.primary} />
-          </View>
-          <View style={styles.transactionDetails}>
-            <Text style={styles.transactionName}>Starbucks</Text>
-            <Text style={styles.transactionDate}>July 20, 2024</Text>
-          </View>
-          <Text style={[styles.transactionAmount, { color: colors.textDark }]}>
-            -Rs.5.75
-          </Text>
+      <View style={styles.transactionSection}>
+        <View style={styles.transactionHeader}>
+          <Text style={styles.transactionTitle}>Transaction</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAll}>See all</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.transactionItem}>
-          <View style={styles.transactionIcon}>
-            <UserIcon width={20} height={20} fill={colors.primary} />
-          </View>
-          <View style={styles.transactionDetails}>
-            <Text style={styles.transactionName}>From John</Text>
-            <Text style={styles.transactionDate}>July 19, 2024</Text>
-          </View>
-          <Text style={[styles.transactionAmount, { color: colors.success }]}>
-            +Rs.500.00
-          </Text>
+
+        <View style={styles.transactionList}>
+          {transactions.map((transaction) => (
+            <View key={transaction.id} style={styles.transactionItem}>
+              <View style={styles.transactionIconContainer}>
+                <View style={styles.transactionIcon}>
+                  <Text style={styles.iconEmoji}>{transaction.icon}</Text>
+                </View>
+              </View>
+
+              <View style={styles.transactionContent}>
+                <Text style={styles.transactionName}>{transaction.name}</Text>
+                <Text style={styles.transactionTime}>{transaction.time}</Text>
+              </View>
+
+              <View style={styles.transactionRight}>
+                <Text
+                  style={[
+                    styles.transactionAmount,
+                    {
+                      color:
+                        transaction.type === 'received'
+                          ? colors.success
+                          : colors.text,
+                    },
+                  ]}
+                >
+                  {transaction.amount}
+                </Text>
+                <Text style={styles.transactionType}>
+                  {transaction.type === 'received' ? 'Received' : 'Transfer'}
+                </Text>
+              </View>
+            </View>
+          ))}
         </View>
       </View>
     </ScrollView>
@@ -206,9 +259,9 @@ const HomeScreen = () => {
 export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 20,
+    paddingTop: 40,
     flex: 1,
-    backgroundColor: colors.Background, // dark background
+    backgroundColor: colors.Background,
   },
   scrollContent: { padding: 24 },
   header: {
@@ -291,49 +344,75 @@ const styles = StyleSheet.create({
     }),
   },
   actionLabel: { fontSize: 14, fontWeight: '500', color: colors.text },
-  transactionBox: {
-    backgroundColor: colors.frostedBg,
-    borderRadius: 16,
-    padding: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.text,
-        shadowOpacity: 0.08,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-      },
-      android: {
-        elevation: 4,
-        borderColor: colors.frostedBorder,
-        borderWidth: 1,
-      },
-    }),
+  transactionSection: {
+    marginTop: 8,
+  },
+  transactionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   transactionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    marginBottom: 16,
     color: colors.text,
+  },
+  seeAll: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  transactionList: {
+    backgroundColor: 'transparent',
   },
   transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.frostedBorder,
+    paddingVertical: 12,
+    paddingHorizontal: 0,
+  },
+  transactionIconContainer: {
+    marginRight: 12,
   },
   transactionIcon: {
     width: 45,
     height: 45,
     borderRadius: 12,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
   },
-  transactionDetails: { flex: 1 },
-  transactionName: { fontSize: 16, fontWeight: '600', color: colors.text },
-  transactionDate: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
-  transactionAmount: { fontSize: 16, fontWeight: '600', color: colors.text },
+  iconEmoji: {
+    fontSize: 24,
+  },
+  transactionContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  transactionName: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  transactionTime: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '400',
+  },
+  transactionRight: {
+    alignItems: 'flex-end',
+  },
+  transactionAmount: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  transactionType: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '400',
+  },
 });
