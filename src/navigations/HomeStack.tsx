@@ -11,6 +11,7 @@ import PaymentScreen from '../screens/Payments/PaymentScreen';
 import SendMoney from '../screens/Payments/SendMoney';
 import QRCodeScreen from '../screens/Wallet/QRCodeScreen';
 import AddingBeneficiary from '../screens/Payments/AddingBeneficiary';
+import { colors } from '../theme/style';
 // Import other home-related screens
 
 // --- FIX: Update the Param list to match HomeScreen ---
@@ -26,6 +27,16 @@ export type HomeStackParamList = {
 };
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
+const defaultHeaderOptions = {
+  headerShadowVisible: false,
+  headerTransparent: true,
+  headerTintColor: colors.white,
+  headerTitleStyle: {
+    color: colors.white,
+    fontWeight: '600',
+  },
+};
+
 export default function HomeStack() {
   return (
     <Stack.Navigator>
@@ -40,7 +51,7 @@ export default function HomeStack() {
         options={{
           title: 'My Cards',
           headerTitleAlign: 'center',
-          headerShadowVisible: false,
+          ...defaultHeaderOptions,
         }}
       />
       <Stack.Screen
@@ -49,7 +60,7 @@ export default function HomeStack() {
         options={{
           title: 'My Cards',
           headerTitleAlign: 'center',
-          headerShadowVisible: false,
+          ...defaultHeaderOptions,
         }}
       />
 
@@ -58,8 +69,8 @@ export default function HomeStack() {
         name="LoadMoneyScreen"
         component={LoadMoneyScreen}
         options={{
-          headerShadowVisible: false,
           title: 'Load Money',
+          ...defaultHeaderOptions,
         }}
       />
 
@@ -68,32 +79,32 @@ export default function HomeStack() {
         name="PaymentScreen"
         component={PaymentScreen}
         options={{
-          headerShadowVisible: false,
           title: 'Receive Money',
+          ...defaultHeaderOptions,
         }}
       />
       <Stack.Screen
         name="SendMoney"
         component={SendMoney}
         options={{
-          headerShadowVisible: false,
           title: 'Send Money',
+          ...defaultHeaderOptions,
         }}
       />
       <Stack.Screen
         name="QRCodeScreen"
         component={QRCodeScreen}
         options={{
-          headerShadowVisible: false,
           title: 'QR Code',
+          ...defaultHeaderOptions,
         }}
       />
       <Stack.Screen
         name="AddingBeneficiary"
         component={AddingBeneficiary}
         options={{
-          headerShadowVisible: false,
           title: 'Add Beneficiary',
+          ...defaultHeaderOptions,
         }}
       />
     </Stack.Navigator>

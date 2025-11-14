@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 import HomeStack from './HomeStack';
 import MoreScreen from '../screens/Home/MoreScreen';
-import { theme, colors } from '../theme/style';
+import { colors } from '../theme/style';
 
 // --- Import your custom icons ---
 import ScanIcon from '../assets/icons/scan.svg';
@@ -13,95 +13,163 @@ import MenuIcon from '../assets/icons/menu.svg';
 const Tab = createBottomTabNavigator();
 
 // This is a dummy component. It will never be rendered.
-// We just need it to make the tab button work.
 const DummyScanScreen = () => null;
 
 export default function BottomBar() {
+  const [activeTab, setActiveTab] = useState('Home');
+
+  const handleTabPress = (tabName: string, navigation: any) => {
+    setActiveTab(tabName);
+    if (tabName === 'Home') {
+      navigation.navigate('Home');
+    } else if (tabName === 'Scan QR') {
+      navigation.navigate('Home', { screen: 'QRCodeScreen' });
+    } else if (tabName === 'More') {
+      navigation.navigate('More');
+    }
+  };
+
+  const CustomTabBar = ({ navigation }: any) => {
+    return (
+      <View style={styles.tabBarContainer}>
+        <View style={styles.pillContainer}>
+          {/* Home Button */}
+          <TouchableOpacity
+            style={styles.tabButton}
+            onPress={() => handleTabPress('Home', navigation)}
+          >
+            <View
+              style={[
+                styles.iconCircle,
+                activeTab === 'Home' && styles.activeCircle,
+              ]}
+            >
+              <HouseIcon
+                width={24}
+                height={24}
+                fill={activeTab === 'Home' ? colors.primary : `rgba(255, 255, 255, 0.6)`}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {/* Scan QR Button */}
+          <TouchableOpacity
+            style={styles.tabButton}
+            onPress={() => handleTabPress('Scan QR', navigation)}
+          >
+            <View
+              style={[
+                styles.iconCircle,
+                activeTab === 'Scan QR' && styles.activeCircle,
+              ]}
+            >
+              <ScanIcon
+                width={24}
+                height={24}
+                fill={activeTab === 'Scan QR' ? colors.primary : `rgba(255, 255, 255, 0.6)`}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {/* More Button */}
+          <TouchableOpacity
+            style={styles.tabButton}
+            onPress={() => handleTabPress('More', navigation)}
+          >
+            <View
+              style={[
+                styles.iconCircle,
+                activeTab === 'More' && styles.activeCircle,
+              ]}
+            >
+              <MenuIcon
+                width={24}
+                height={24}
+                fill={activeTab === 'More' ? colors.primary : `rgba(255, 255, 255, 0.6)`}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: '#88AABB',
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 0,
-          elevation: 10,
-          shadowOpacity: 0.1,
-        },
-        tabBarLabelStyle: {
-          fontWeight: '600',
-          fontSize: 12,
-        },
+    <ImageBackground
+      source={require('../assets/bg.png')}
+      style={styles.backgroundContainer}
+      imageStyle={{
+        resizeMode: 'cover',
       }}
     >
-      {/* Home Tab */}
-      <Tab.Screen
-        name="Home"
-        component={HomeStack}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarItemStyle: { paddingLeft: 20 },
-          tabBarIcon: ({ color, size }) => (
-            <HouseIcon width={size} height={size} fill={color} />
-          ),
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
         }}
-      />
+        tabBar={(props) => <CustomTabBar {...props} />}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeStack}
+          options={{
+            tabBarLabel: 'Home',
+          }}
+        />
 
-      {/* Scan QR Button */}
-      <Tab.Screen
-        name="Scan QR"
-        component={DummyScanScreen}
-        options={({ navigation }) => ({
-          tabBarLabel: '',
-          tabBarButton: props => (
-            <TouchableOpacity
-              style={styles.scanButtonContainer}
-              onPress={() =>
-                navigation.navigate('Home', { screen: 'QRCodeScreen' })
-              }
-            >
-              <View style={[styles.scanButton, { backgroundColor: colors.primary }]}>
-                <ScanIcon width={38} height={38} fill="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-          ),
-        })}
-      />
+        <Tab.Screen
+          name="Scan QR"
+          component={DummyScanScreen}
+          options={{
+            tabBarLabel: '',
+          }}
+        />
 
-      {/* More Tab */}
-      <Tab.Screen
-        name="More"
-        component={MoreScreen}
-        options={{
-          tabBarLabel: 'More',
-          tabBarItemStyle: { paddingRight: 20 },
-          tabBarIcon: ({ color, size }) => (
-            <MenuIcon width={size} height={size} fill={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+        <Tab.Screen
+          name="More"
+          component={MoreScreen}
+          options={{
+            tabBarLabel: 'More',
+          }}
+        />
+      </Tab.Navigator>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  scanButtonContainer: {
+  backgroundContainer: {
+    flex: 1,
+  },
+  tabBarContainer: {
+    backgroundColor: 'transparent',
+    paddingBottom: 24,
+    paddingTop: 16,
+    paddingHorizontal: 24,
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.secondary,
+    borderRadius: 50,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    justifyContent: 'space-around',
+    alignItems: 'center'
+  },
+  tabButton: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 8,
   },
-  scanButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 40,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
-    transform: [{ translateY: -15 }],
+  iconCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  activeCircle: {
+    backgroundColor: `rgba(255, 255, 255)`,
   },
 });

@@ -259,11 +259,14 @@ const HomeScreen = () => {
 export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 40,
+    paddingTop: 0,
     flex: 1,
     backgroundColor: colors.Background,
   },
-  scrollContent: { padding: 24 },
+  scrollContent: { 
+    padding: 24,
+    paddingBottom: 120,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

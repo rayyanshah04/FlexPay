@@ -19,6 +19,7 @@ import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
 import { API_BASE } from '../../config';
 import { selectToken } from '../../slices/authSlice';
+import { Button } from '../../components/ui/Button';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SendMoney'>;
 
@@ -37,8 +38,8 @@ export default function SendMoney({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const token = useSelector(selectToken);
 
-  const colors = ['#4ECCA3', '#FF9F45', '#5DA3FA', '#F76C6C', '#A162F7', '#4DD0E1'];
-  const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
+  const colorPalette = ['#4ECCA3', '#FF9F45', '#5DA3FA', '#F76C6C', '#A162F7', '#4DD0E1'];
+  const getRandomColor = () => colorPalette[Math.floor(Math.random() * colorPalette.length)];
 
   const fetchBeneficiaries = useCallback(async () => {
     if (!token) return;
@@ -120,7 +121,7 @@ export default function SendMoney({ navigation }: Props) {
     navigation.navigate('ConfirmPayment', {
       name: user.nickname || user.name,
       iban: user.iban_or_number,
-      amount: '10,000 PKR', // This seems to be a placeholder
+      amount: '10,000 PKR',
     });
   };
 
@@ -129,55 +130,69 @@ export default function SendMoney({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.inputContainer}>
-        <View style={styles.inputIcon}>
-          <ScanIcon width={20} height={20} fill={colors.placeholder} />
-        </View>
-        <TextInput
-          placeholder="Search by name, phone, or IBAN..."
-          value={accountNo}
-          onChangeText={setAccountNo}
-          autoCapitalize="none"
-          placeholderTextColor={colors.placeholder}
-          style={styles.input}
-        />
-      </View>
-      {isSearching && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator style={styles.loadingIndicator} color={colors.primary} />
-          <Text style={styles.loadingText}>Searching...</Text>
-        </View>
-      )}
-
       <ScrollView
-        style={styles.userList}
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {displayedResults.map(user => (
-          <TouchableOpacity
-            key={user.iban_or_number}
-            style={styles.userCard}
-            activeOpacity={0.8}
-            onPress={() => handleSelect(user)}
-          >
-            <View style={[styles.avatar, { backgroundColor: user.color }]}>
-              <UserIcon width={22} height={22} fill="#fff" />
+        <View style={styles.scrollContent}>
+          {/* Search Input */}
+          <View style={styles.inputContainer}>
+            <View style={styles.inputIcon}>
+              <ScanIcon width={20} height={20} fill={colors.placeholder} />
             </View>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user.nickname || user.name}</Text>
-              <Text style={styles.userIban}>{user.iban_or_number}</Text>
+            <TextInput
+              placeholder="Search by name, phone, or IBAN..."
+              value={accountNo}
+              onChangeText={setAccountNo}
+              autoCapitalize="none"
+              placeholderTextColor={colors.placeholder}
+              style={styles.input}
+            />
+          </View>
+
+          {/* Loading State */}
+          {isSearching && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator style={styles.loadingIndicator} color={colors.primary} />
+              <Text style={styles.loadingText}>Searching...</Text>
             </View>
-          </TouchableOpacity>
-        ))}
+          )}
+
+          {/* Section Title */}
+          <Text style={styles.sectionTitle}>Beneficiaries</Text>
+
+          {/* User Cards */}
+          <View style={styles.userList}>
+            {displayedResults.map(user => (
+              <TouchableOpacity
+                key={user.iban_or_number}
+                style={styles.userCard}
+                activeOpacity={0.8}
+                onPress={() => handleSelect(user)}
+              >
+                <View style={[styles.avatar, { backgroundColor: user.color }]}>
+                  <UserIcon width={22} height={22} fill="#fff" />
+                </View>
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>{user.nickname || user.name}</Text>
+                  <Text style={styles.userIban}>{user.iban_or_number}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => navigation.navigate('AddingBeneficiary')}
-      >
-        <Text style={styles.addButtonText}>+ Add a Beneficiary</Text>
-      </TouchableOpacity>
+      {/* Add Button at Bottom */}
+      <View style={styles.buttonContainer}>
+        <Button
+          variant="primary"
+          onPress={() => navigation.navigate('AddingBeneficiary')}
+        >
+          ADD A BENEFICIARY
+        </Button>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -185,43 +200,34 @@ export default function SendMoney({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.Background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 140,
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 40 : 60,
-    backgroundColor: colors.white,
-  },
-  headerBack: {
-    fontSize: 24,
-    color: colors.primary,
-  },
-  headerTitle: {
-    color: colors.textDark,
+    paddingBottom: 120,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.secondary,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    marginHorizontal: 24,
-    marginTop: 34,
+    paddingHorizontal: 16,
     marginBottom: 24,
-    shadowColor: colors.textDark,
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    borderWidth: 1,
+    borderColor: `rgba(255, 255, 255, 0.1)`,
+    height: 55,
   },
   inputIcon: {
-    marginRight: 8,
+    marginRight: 12,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: colors.textDark,
+    color: colors.text,
   },
   loadingIndicator: {
     marginRight: 8,
@@ -230,8 +236,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -14,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   loadingText: {
     fontSize: 14,
@@ -241,25 +246,20 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.textDark,
+    color: colors.text,
     marginBottom: 16,
-    marginHorizontal: 24,
   },
   userList: {
-    flex: 1,
-    paddingHorizontal: 24,
+    gap: 12,
   },
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.secondary,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: colors.textDark,
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    borderWidth: 1,
+    borderColor: `rgba(255, 255, 255, 0.1)`,
   },
   avatar: {
     width: 50,
@@ -275,23 +275,21 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textDark,
+    color: colors.text,
   },
   userIban: {
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
   },
-  addButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    margin: 54,
-  },
-  addButtonText: {
-    color: colors.white,
-    fontSize: 18,
-    fontWeight: '600',
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    padding: 24,
+    backgroundColor: colors.Background,
+    borderTopWidth: 1,
+    borderTopColor: `rgba(255, 255, 255, 0.1)`,
   },
 });
