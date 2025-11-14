@@ -177,7 +177,7 @@ export default function CardScreen() {
           styles.container,
           {
             paddingTop: insets.top + 24,
-            paddingBottom: insets.bottom + 120,
+            paddingBottom: insets.bottom + 12,
             paddingHorizontal: 24,
           },
         ]}
@@ -307,8 +307,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 200,
   },
   backdropSquare: {
     position: 'absolute',
@@ -429,6 +430,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   iconButton: {
+    marginTop: -40,
+    marginBottom: 60,
     width: 72 * SCALE,
     height: 72 * SCALE,
     borderRadius: 36 * SCALE,

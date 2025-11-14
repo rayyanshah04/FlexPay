@@ -31,6 +31,16 @@ export default function BottomBar() {
       }
     }
 
+    // Show bottom bar only on these screens
+    const screensToShowTabBar = [
+      'HomeMain',
+      'QRCodeScreen',
+    ];
+
+    if (currentTabRoute.name === 'Home' && !screensToShowTabBar.includes(focusedRouteName || '')) {
+      return null;
+    }
+
     return (
       <View style={styles.tabBarContainer}>
         <View style={styles.pillContainer}>
