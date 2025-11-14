@@ -44,7 +44,7 @@ const QRScanner = ({ onRead }: { onRead: (value: string | null) => void }) => {
     }, 15000);
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [onRead]);
 
   if (device == null || !hasPermission) {
     return (

@@ -6,44 +6,25 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
   ScrollView,
   TextInput,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import PhoneIcon from '../../assets/icons/send.svg';
-import IbanIcon from '../../assets/icons/wallet.svg';
 import NoteIcon from '../../assets/icons/clipboard.svg';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../slices/authSlice';
 import { API_BASE } from '../../config';
+import { Button } from '../../components/ui/Button';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddingBeneficiary'>;
 
-// A styled input component to match the SendMoney screen's aesthetic
-const StyledInput = ({ label, value, onChangeText, placeholder, keyboardType, SvgIcon }: any) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.label}>{label}</Text>
-    <View style={styles.inputContainer}>
-      <View style={styles.inputIcon}>
-        <SvgIcon width={20} height={20} fill={colors.placeholder} />
-      </View>
-      <TextInput
-        placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType || 'default'}
-        placeholderTextColor={colors.placeholder}
-        style={styles.input}
-      />
-    </View>
-  </View>
-);
-
 export default function AddingBeneficiary({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
@@ -119,75 +100,110 @@ export default function AddingBeneficiary({ navigation }: Props) {
     >
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 80,
+            paddingBottom: insets.bottom + 180,
+            paddingHorizontal: 24,
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.formCard}>
-          <Text style={styles.title}>New Beneficiary</Text>
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.iconEmoji}>👤</Text>
+          </View>
+          <Text style={styles.title}>Add New Beneficiary</Text>
           <Text style={styles.subtitle}>
-            Enter the details of the person you want to add to your list.
+            Save contact details for quick and easy payments
           </Text>
+        </View>
 
-          <StyledInput
-            label="Beneficiary Name"
-            placeholder="e.g., John Doe"
-            value={name}
-            onChangeText={setName}
-            SvgIcon={UserIcon}
-          />
+        {/* Form Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Beneficiary Information</Text>
 
+          {/* Name Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Full Name</Text>
+            <View style={styles.inputWrapper}>
+              <View style={styles.inputIconContainer}>
+                <UserIcon width={18} height={18} fill={colors.textSecondary} />
+              </View>
+              <TextInput
+                placeholder="Enter beneficiary name"
+                value={name}
+                onChangeText={setName}
+                placeholderTextColor={colors.textSecondary}
+                style={styles.input}
+              />
+            </View>
+          </View>
+
+          {/* Phone/IBAN Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Phone Number / IBAN</Text>
-            <Text style={styles.formatText}>
-              Phone: 03XXXXXXXXX (11 DIGITS){'\n'}IBAN: PK04FLXP0000003XXXXXXXXX (24 DIGITS)
+            <Text style={styles.helperText}>
+              Phone: 03XXXXXXXXX (11 digits){'\n'}
+              IBAN: PK04FLXP0000003XXXXXXXXX (24 digits)
             </Text>
             <View
               style={[
-                styles.inputContainer,
-                phoneValidationStatus === false && styles.inputContainerError,
+                styles.inputWrapper,
+                phoneValidationStatus === false && styles.inputWrapperError,
               ]}
             >
-              <View style={styles.inputIcon}>
-                <PhoneIcon width={20} height={20} fill={colors.placeholder} />
+              <View style={styles.inputIconContainer}>
+                <PhoneIcon width={18} height={18} fill={colors.textSecondary} />
               </View>
               <TextInput
-                placeholder="Phone/IBAN"
+                placeholder="Enter phone or IBAN"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="default"
-                placeholderTextColor={colors.placeholder}
+                placeholderTextColor={colors.textSecondary}
                 style={styles.input}
               />
             </View>
             {phoneValidationStatus === false && (
-              <Text style={styles.errorText}>Invalid Phone or IBAN format</Text>
+              <Text style={styles.errorText}>⚠ Invalid format</Text>
             )}
             {phoneValidationStatus === true && (
               <Text style={styles.successText}>✓ Valid format</Text>
             )}
           </View>
 
-          <StyledInput
-            label="Note (Optional)"
-            placeholder="e.g., For monthly rent"
-            value={note}
-            onChangeText={setNote}
-            SvgIcon={NoteIcon}
-          />
+          {/* Note Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Note (Optional)</Text>
+            <View style={styles.inputWrapper}>
+              <View style={styles.inputIconContainer}>
+                <NoteIcon width={18} height={18} fill={colors.textSecondary} />
+              </View>
+              <TextInput
+                placeholder="Add a note (e.g., Monthly rent)"
+                value={note}
+                onChangeText={setNote}
+                placeholderTextColor={colors.textSecondary}
+                style={styles.input}
+              />
+            </View>
+          </View>
         </View>
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.saveButton}
+      {/* Bottom Button */}
+      <View style={styles.bottomButtonContainer}>
+        <Button
+          variant="primary"
           onPress={handleAddBeneficiary}
           disabled={isLoading}
-          activeOpacity={0.8}
+          style={styles.saveButton}
         >
-          <Text style={styles.saveButtonText}>
-            {isLoading ? 'Saving...' : 'Save Beneficiary'}
-          </Text>
-        </TouchableOpacity>
+          {isLoading ? 'Adding...' : 'Add Beneficiary'}
+        </Button>
       </View>
     </KeyboardAvoidingView>
   );
@@ -196,73 +212,90 @@ export default function AddingBeneficiary({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.Background,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    marginTop: 18,
-    padding: 24,
+    paddingBottom: 120,
   },
-  formCard: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    marginTop: 28,
-    padding: 24,
-    elevation: 2,
-    shadowColor: colors.textDark,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.secondary,
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  iconEmoji: {
+    fontSize: 40,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.textDark,
+    color: colors.text,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textSecondary,
-    marginBottom: 32,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
-  formatText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 12,
-    textAlign: 'left',
+  section: {
+    marginTop: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 20,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.textDark,
+    color: colors.textSecondary,
     marginBottom: 8,
   },
-  inputContainer: {
+  helperText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginBottom: 8,
+    opacity: 0.7,
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: 'transparent',
     borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 55,
     borderWidth: 1,
-    borderColor: colors.frostedBorder,
+    borderColor: colors.buttonSecondaryBorder,
+    paddingHorizontal: 16,
+    height: 55,
   },
-  inputContainerError: {
+  inputWrapperError: {
     borderColor: colors.error,
-    borderWidth: 2,
+    borderWidth: 1.5,
   },
-  inputIcon: {
+  inputIconContainer: {
     marginRight: 12,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: colors.textDark,
+    color: colors.text,
   },
   errorText: {
     fontSize: 12,
@@ -276,25 +309,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontWeight: '500',
   },
-  buttonContainer: {
-    marginBottom: 64,
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     padding: 24,
-    backgroundColor: colors.white,
+    paddingBottom: 40,
+    backgroundColor: colors.Background,
   },
   saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 2,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-  },
-  saveButtonText: {
-    color: colors.white,
-    fontSize: 18,
-    fontWeight: '600',
+    marginTop: 0,
   },
 });

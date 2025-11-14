@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    marginBottom : 100,
+    marginBottom : 20,
     padding: 24,
     backgroundColor: colors.Background,
     borderTopWidth: 1,

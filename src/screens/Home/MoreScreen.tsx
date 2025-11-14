@@ -77,7 +77,7 @@ const MoreScreen = () => {
       </View>
 
       {/* Profile Card */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.profileCard}
         onPress={() => {
           // @ts-ignore - Navigate to UserSettings in HomeStack
@@ -103,7 +103,7 @@ const MoreScreen = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => {
             // @ts-ignore
@@ -125,7 +125,7 @@ const MoreScreen = () => {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => {
             // @ts-ignore
@@ -147,7 +147,7 @@ const MoreScreen = () => {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => {
             // @ts-ignore
@@ -234,16 +234,19 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary,
+    backgroundColor: 'transparent',
     borderRadius: 16,
-    padding: 20,
+    paddingVertical: 12,
     marginBottom: 32,
+    borderBottomWidth: 1,
+    borderTopWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
   },
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -273,16 +276,18 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary,
-    borderRadius: 12,
-    padding: 16,
+    paddingVertical: 12,
     marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.buttonSecondaryBorder,
   },
   menuIcon: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -304,8 +309,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   logoutButton: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: 'transparent',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.error,
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
@@ -313,7 +320,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF3B30',
+    color: colors.error,
   },
 });
 

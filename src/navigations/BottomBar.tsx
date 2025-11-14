@@ -34,10 +34,9 @@ export default function BottomBar() {
     // Show bottom bar only on these screens
     const screensToShowTabBar = [
       'HomeMain',
-      'QRCodeScreen',
     ];
 
-    if (currentTabRoute.name === 'Home' && !screensToShowTabBar.includes(focusedRouteName || '')) {
+    if (currentTabRoute.name === 'Home' && focusedRouteName && !screensToShowTabBar.includes(focusedRouteName)) {
       return null;
     }
 
@@ -71,7 +70,7 @@ export default function BottomBar() {
           {/* Scan QR Button */}
           <TouchableOpacity
             style={styles.tabButton}
-            onPress={() => navigation.navigate('Scan QR')}
+            onPress={() => navigation.navigate('Home', { screen: 'QRCodeScreen' })}
           >
             <View
               style={

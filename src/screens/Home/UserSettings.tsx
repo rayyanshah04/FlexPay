@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
+import { Button } from '../../components/ui/Button';
 
 export default function UserSettings() {
   const insets = useSafeAreaInsets();
@@ -66,7 +67,7 @@ export default function UserSettings() {
         styles.scrollContent,
         {
           paddingTop: insets.top + 80,
-          paddingBottom: insets.bottom + 120,
+          paddingBottom: insets.bottom + 40,
           paddingHorizontal: 24,
         },
       ]}
@@ -120,9 +121,13 @@ export default function UserSettings() {
           />
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
-        </TouchableOpacity>
+        <Button
+          variant="primary"
+          onPress={handleSaveProfile}
+          style={{ marginTop: 8 }}
+        >
+          Save Changes
+        </Button>
       </View>
 
       {/* Security Section */}
@@ -234,7 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.Background,
   },
   scrollContent: {
-    flexGrow: 1,
+    // flexGrow removed to prevent excessive scrolling
   },
   avatarContainer: {
     alignItems: 'center',
@@ -248,6 +253,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 2,
+    borderColor: colors.buttonSecondaryBorder,
   },
   profileName: {
     fontSize: 24,
@@ -278,43 +285,37 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: colors.secondary,
+    backgroundColor: 'transparent',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
     padding: 16,
     fontSize: 16,
     color: colors.text,
   },
-  saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.white,
-  },
+
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary,
-    borderRadius: 12,
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 0,
     marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.buttonSecondaryBorder,
   },
   settingIcon: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.buttonSecondaryBorder,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   iconEmoji: {
-    fontSize: 20,
+    fontSize: 24,
   },
   settingContent: {
     flex: 1,
@@ -330,8 +331,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   logoutButton: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: 'transparent',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.error,
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
@@ -340,7 +343,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF3B30',
+    color: colors.error,
   },
   versionText: {
     textAlign: 'center',

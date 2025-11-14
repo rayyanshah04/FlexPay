@@ -102,7 +102,7 @@ const HomeScreen = () => {
   const transactions = [
     {
       id: 1,
-      name: 'Dribble',
+      name: 'Rayyan',
       time: 'Today, 15:10',
       amount: '-$149.00',
       type: 'transfer',
