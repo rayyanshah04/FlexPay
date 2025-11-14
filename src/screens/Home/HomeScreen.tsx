@@ -155,9 +155,12 @@ const HomeScreen = () => {
         <Text style={styles.greetingTitle}>Hi, {userName}</Text>
         <Text style={styles.greetingSubtitle}>Welcome back</Text>
       </View>
-      <View style={styles.profilePic}>
+      <TouchableOpacity
+        style={styles.profilePic}
+        onPress={() => navigation.navigate('UserSettings')}
+      >
         <UserIcon width={30} height={30} fill={colors.white} />
-      </View>
+      </TouchableOpacity>
     </View>
 
     {/* Balance Card */}

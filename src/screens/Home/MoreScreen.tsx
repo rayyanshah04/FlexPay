@@ -1,137 +1,215 @@
-import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import Icon from '@react-native-vector-icons/ionicons';
-import { colors } from '../../theme/style';
-
-// for name and also see line 63
-import React from 'react';
-import { Text } from 'react-native';
-import { useUserName } from '../../hooks/useUserName';
-
-
+import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
+  Text,
+  Alert,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { logout } from '../../slices/authSlice';
+import { colors } from '../../theme/style';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../slices/authSlice';
+import UserIcon from '../../assets/icons/user-solid-full.svg';
+import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
 
-const infoItems = [
-  { icon: 'shield-checkmark-outline', text: 'Privacy policy' },
-  { icon: 'document-text-outline', text: 'Terms & conditions' },
-  { icon: 'calendar-outline', text: 'Schedule of charges' },
-];
-
-
-type HomeScreenNavigationProp = NativeStackNavigationProp<
+type MoreScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'AppTabs'
 >;
 
 const MoreScreen = () => {
-  const userName = useUserName();
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<MoreScreenNavigationProp>();
   const dispatch = useDispatch();
-  const mainItems = [
-    {
-      icon: 'help-circle-outline',
-      iconType: 'ionicon',
-      text: 'Help center',
-    },
-    {
-      sectionHeader: 'Info',
-      isSection: true,
-    },
-    {
-      isCard: true,
-      items: infoItems,
-    },
-    {
-      icon: 'phone-portrait-outline',
-      iconType: 'ionicon',
-      text: 'Manage devices',
-      showChevron: true,
-    },
-    {
-      icon: 'business-outline',
-      iconType: 'ionicon',
-      text: 'Raast ID Management',
-      showChevron: true,
-    },
-  ];
+  const [userName, setUserName] = useState('User');
+  const [userEmail, setUserEmail] = useState('user@example.com');
 
-  return (
-    <ScrollView style={styles.container}>
-      <TouchableOpacity style={styles.item}>
-        <View style={[styles.iconContainer, styles.userContainer]}>
-          <FontAwesome name={'user'} size={30} color={colors.primary} />
-        </View>
-        <Text style={styles.itemText}>{userName}</Text>
-      </TouchableOpacity>
-      {mainItems.map((item, index) => {
-        // Section header
-        if (item.isSection)
-          return (
-            <Text key={index} style={styles.sectionHeader}>
-              {item.sectionHeader}
-            </Text>
-          );
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const userData = await AsyncStorage.getItem('userDetails');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setUserName(parsed.name || 'User');
+        setUserEmail(parsed.email || 'user@example.com');
+      }
+    };
+    fetchUserDetails();
+  }, []);
 
-        // Card with multiple rows
-        if (item.isCard)
-          return (
-            <View key={index} style={styles.card}>
-              {item.items.map((cardItem, cardIndex) => (
-                <TouchableOpacity key={cardIndex} style={styles.row}>
-                  <View style={styles.iconContainer}>
-                    <Icon
-                      name={cardItem.icon as any}
-                      size={22}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <Text style={styles.itemText}>{cardItem.text}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          );
-
-        // Default item
-        return (
-          <TouchableOpacity key={index} style={styles.item}>
-            <View style={styles.iconContainer}>
-              <Icon name={item.icon as any} size={22} color={colors.error} />
-            </View>
-            <Text style={styles.itemText}>{item.text}</Text>
-            {item.showChevron && (
-              <Icon
-                name="chevron-forward-outline"
-                size={20}
-                color={colors.placeholder}
-                style={{ marginLeft: 'auto' }}
-              />
-            )}
-          </TouchableOpacity>
-        );
-      })}
-      <TouchableOpacity
-        style={styles.item}
-        onPress={() => {
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: () => {
           dispatch(logout());
           navigation.reset({
             index: 0,
             routes: [{ name: 'Welcome' }],
           });
+        },
+      },
+    ]);
+  };
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.scrollContent,
+        {
+          paddingTop: insets.top + 24,
+          paddingBottom: insets.bottom + 120,
+          paddingHorizontal: 24,
+        },
+      ]}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>More</Text>
+      </View>
+
+      {/* Profile Card */}
+      <TouchableOpacity 
+        style={styles.profileCard}
+        onPress={() => {
+          // @ts-ignore - Navigate to UserSettings in HomeStack
+          navigation.navigate('Home', { screen: 'UserSettings' });
         }}
       >
-        <View style={styles.iconContainer}>
-          <Icon name={'log-out-outline'} size={22} color={colors.error} />
+        <View style={styles.avatar}>
+          <UserIcon width={40} height={40} fill={colors.white} />
         </View>
-        <Text style={styles.itemText}>Logout</Text>
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>{userName}</Text>
+          <Text style={styles.profileEmail}>{userEmail}</Text>
+        </View>
+        <ArrowUpIcon
+          width={16}
+          height={16}
+          fill={colors.textSecondary}
+          style={{ transform: [{ rotate: '90deg' }] }}
+        />
+      </TouchableOpacity>
+
+      {/* Quick Actions */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => {
+            // @ts-ignore
+            navigation.navigate('Home', { screen: 'CardScreen' });
+          }}
+        >
+          <View style={styles.menuIcon}>
+            <Text style={styles.iconEmoji}>💳</Text>
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>My Cards</Text>
+            <Text style={styles.menuSubtitle}>View & manage your cards</Text>
+          </View>
+          <ArrowUpIcon
+            width={16}
+            height={16}
+            fill={colors.textSecondary}
+            style={{ transform: [{ rotate: '90deg' }] }}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => {
+            // @ts-ignore
+            navigation.navigate('Home', { screen: 'SendMoney' });
+          }}
+        >
+          <View style={styles.menuIcon}>
+            <Text style={styles.iconEmoji}>💸</Text>
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>Send Money</Text>
+            <Text style={styles.menuSubtitle}>Transfer to anyone</Text>
+          </View>
+          <ArrowUpIcon
+            width={16}
+            height={16}
+            fill={colors.textSecondary}
+            style={{ transform: [{ rotate: '90deg' }] }}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => {
+            // @ts-ignore
+            navigation.navigate('Home', { screen: 'QRCodeScreen' });
+          }}
+        >
+          <View style={styles.menuIcon}>
+            <Text style={styles.iconEmoji}>📷</Text>
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>Scan QR Code</Text>
+            <Text style={styles.menuSubtitle}>Quick payment</Text>
+          </View>
+          <ArrowUpIcon
+            width={16}
+            height={16}
+            fill={colors.textSecondary}
+            style={{ transform: [{ rotate: '90deg' }] }}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Support */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Support</Text>
+
+        <TouchableOpacity style={styles.menuItem}>
+          <View style={styles.menuIcon}>
+            <Text style={styles.iconEmoji}>❓</Text>
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>Help Center</Text>
+            <Text style={styles.menuSubtitle}>Get help & support</Text>
+          </View>
+          <ArrowUpIcon
+            width={16}
+            height={16}
+            fill={colors.textSecondary}
+            style={{ transform: [{ rotate: '90deg' }] }}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem}>
+          <View style={styles.menuIcon}>
+            <Text style={styles.iconEmoji}>ℹ️</Text>
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>About FlexPay</Text>
+            <Text style={styles.menuSubtitle}>Version 1.0.0</Text>
+          </View>
+          <ArrowUpIcon
+            width={16}
+            height={16}
+            fill={colors.textSecondary}
+            style={{ transform: [{ rotate: '90deg' }] }}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Logout */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -140,54 +218,102 @@ const MoreScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    backgroundColor: colors.Background,
   },
-  sectionHeader: {
+  scrollContent: {
+    flexGrow: 1,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.secondary,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  profileEmail: {
     fontSize: 14,
-    color: colors.placeholder,
-    marginVertical: 10,
-    fontWeight: '500',
+    color: colors.textSecondary,
   },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    paddingVertical: 4,
-    marginBottom: 16,
-    elevation: 1,
+  section: {
+    marginBottom: 32,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.frostedBorder,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    borderRadius: 12,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
     marginBottom: 16,
   },
-  iconContainer: {
-    backgroundColor: `rgba(${colors.primary}, 0.1)`,
-    padding: 8,
-    borderRadius: 25,
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.secondary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  menuIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
   },
-
-  userContainer: {
-    backgroundColor: `rgba(${colors.accent}, 0.1)`,
+  iconEmoji: {
+    fontSize: 20,
   },
-  itemText: {
-    fontSize: 16,
-    color: colors.textDark,
+  menuContent: {
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 15,
     fontWeight: '500',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  menuSubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  logoutButton: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
   },
 });
 
