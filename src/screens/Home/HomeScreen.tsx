@@ -9,6 +9,7 @@ import ShowIcon from '../../assets/icons/show.svg';
 import HideIcon from '../../assets/icons/hide.svg';
 import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/arrow-down.svg';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   StyleSheet,
@@ -65,6 +66,7 @@ const HomeScreen = () => {
       const token = parsed.token;
       if (!token) throw new Error('Auth token not found');
       const response = await fetch(`${API_BASE}/api/has_card`, {
+        method: 'POST', // Changed to POST
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to fetch has_card');
@@ -79,18 +81,23 @@ const HomeScreen = () => {
     fetchBalance().finally(() => setRefreshing(false));
   };
   useEffect(() => {
-    const fetchUserAndBalance = async () => {
+    const fetchUser = async () => {
       const userData = await AsyncStorage.getItem('userDetails');
       if (userData) {
         const parsed = JSON.parse(userData);
         setUserName(parsed.name || 'User');
         dispatch(login(parsed));
       }
-      await fetchBalance();
-      await fetchHasCard();
     };
-    fetchUserAndBalance();
+    fetchUser();
   }, [dispatch]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchBalance();
+      fetchHasCard();
+    }, [])
+  );
 
   const transactions = [
     {

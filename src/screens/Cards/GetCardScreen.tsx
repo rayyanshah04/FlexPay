@@ -60,22 +60,23 @@ export default function GetCardScreen({ navigation }: Props) {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/api/get_card?cardType=${chosenCardType}`, {
-        method: 'GET',
+      const response = await fetch(`${API_BASE}/api/get_card`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ cardType: chosenCardType }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         console.log('Card creation request successful:', data);
-        // TODO: Handle success, e.g., show a success message, navigate to CardScreen
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
+        // Go back to the top of the stack (HomeScreen) and then navigate to CardScreen
+        // This clears the history so the user can't go back to NoCardScreen
+        navigation.popToTop();
+        navigation.navigate('CardScreen');
       } else {
         console.error('Card creation request failed:', data);
         // TODO: Handle error, e.g., show an error message
