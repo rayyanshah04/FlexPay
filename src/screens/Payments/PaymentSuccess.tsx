@@ -1,36 +1,56 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   ImageBackground,
-  Animated,
   Dimensions,
   Alert,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { colors } from '../../theme/style';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
-import { Button } from '../../components/ui/Button';
 import ViewShot from 'react-native-view-shot';
 import Share from 'react-native-share';
-import { Image } from 'react-native';
+import UserIcon from '../../assets/icons/user-solid-full.svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PaymentSuccess'>;
 
 export default function PaymentSuccess({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const viewShotRef = useRef<ViewShot>(null);
+  const [currentUserName, setCurrentUserName] = useState('You');
+  const [currentUserPhone, setCurrentUserPhone] = useState('');
+  
   const {
     name = 'Muhammad Hussain',
     amount = '10,000',
     transactionId = 'TXN123456789',
     phone = '',
+    senderName = 'You',
+    senderPhone = '',
   } = route.params || {};
 
-  // Get current date and time
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const userStr = await AsyncStorage.getItem('userDetails');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          setCurrentUserName(user.name || 'You');
+          setCurrentUserPhone(user.phone_number || '');
+        }
+      } catch (error) {
+        console.error('Error loading user details:', error);
+      }
+    };
+    loadCurrentUser();
+  }, []);
+
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -43,46 +63,12 @@ export default function PaymentSuccess({ route, navigation }: Props) {
     hour12: true,
   });
 
-  // Mask phone number to show only last 2 digits
   const maskPhoneNumber = (phoneNumber: string) => {
     if (!phoneNumber || phoneNumber.length < 2) return phoneNumber;
     const lastTwo = phoneNumber.slice(-2);
     const masked = '*'.repeat(phoneNumber.length - 2);
     return masked + lastTwo;
   };
-
-  // Animation values
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-
-  useEffect(() => {
-    // Success icon animation
-    Animated.sequence([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Content fade in
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        delay: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        delay: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   const handleClose = () => {
     navigation.navigate('AppTabs');
@@ -91,11 +77,7 @@ export default function PaymentSuccess({ route, navigation }: Props) {
   const handleShare = async () => {
     try {
       if (!viewShotRef.current) return;
-
-      // Capture the receipt as an image
       const uri = await viewShotRef.current.capture();
-      
-      // Share the image
       await Share.open({
         url: Platform.OS === 'android' ? `file://${uri}` : uri,
         type: 'image/png',
@@ -104,7 +86,6 @@ export default function PaymentSuccess({ route, navigation }: Props) {
       });
     } catch (error: any) {
       if (error.message && error.message.includes('User did not share')) {
-        // User cancelled, do nothing
         return;
       }
       Alert.alert('Error', 'Failed to share receipt');
@@ -122,100 +103,72 @@ export default function PaymentSuccess({ route, navigation }: Props) {
         style={[
           styles.container,
           {
-            paddingTop: insets.top + 60,
-            paddingBottom: insets.bottom + 40,
-            paddingHorizontal: 24,
+            paddingTop: insets.top + 24,
+            paddingBottom: insets.bottom + 24,
           },
         ]}
       >
+        <View style={styles.backdropSquare} />
+        
         <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1.0, result: 'tmpfile' }}>
-          <View style={styles.shareableContent}>
-            {/* Success Icon with Animation */}
-            <Animated.View
-              style={[
-                styles.successIconContainer,
-                {
-                  transform: [{ scale: scaleAnim }],
-                },
-              ]}
-            >
-              <View style={styles.successIcon}>
-                <Text style={styles.successEmoji}>✓</Text>
-              </View>
-            </Animated.View>
-
-            {/* Content */}
-            <Animated.View
-              style={[
-                styles.content,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              {/* Success Message */}
-              <Text style={styles.title}>Payment Successful!</Text>
-              <Text style={styles.subtitle}>
-                Your payment has been sent successfully
-              </Text>
-
-              {/* Transaction Details Card */}
-              <View style={styles.detailsCard}>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Recipient</Text>
-                  <Text style={styles.detailValue}>{name}</Text>
-                </View>
-                {phone && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Account Number</Text>
-                    <Text style={styles.detailValue}>{maskPhoneNumber(phone)}</Text>
-                  </View>
-                )}
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Amount</Text>
-                  <Text style={styles.amountValue}>Rs. {amount}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Date</Text>
-                  <Text style={styles.detailValue}>{formattedDate}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Time</Text>
-                  <Text style={styles.detailValue}>{formattedTime}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Transaction ID</Text>
-                  <Text style={styles.detailValueSmall}>{transactionId}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Status</Text>
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>Completed</Text>
-                  </View>
-                </View>
+          <View style={styles.cardWrapper}>
+            <View style={styles.card}>
+              <View style={styles.cardTop}>
+                <Text style={styles.amount}>Rs. {amount}</Text>
+                <Text style={styles.brandName}>FlexPay</Text>
               </View>
 
-              {/* FlexPay Branding */}
-              <Text style={styles.brandingText}>Powered by FlexPay</Text>
-            </Animated.View>
+              <View style={styles.cardMiddle}>
+                <View style={styles.userSection}>
+                  <View style={styles.userRow}>
+                    <View style={styles.avatarSmall}>
+                      <UserIcon width={16} height={16} fill={colors.white} />
+                    </View>
+                    <View style={styles.userInfo}>
+                      <Text style={styles.userLabel}>To</Text>
+                      <Text style={styles.userName}>{name}</Text>
+                      {phone && <Text style={styles.userPhone}>{maskPhoneNumber(phone)}</Text>}
+                    </View>
+                  </View>
+
+                  <View style={styles.userRow}>
+                    <View style={styles.avatarSmall}>
+                      <UserIcon width={16} height={16} fill={colors.white} />
+                    </View>
+                    <View style={styles.userInfo}>
+                      <Text style={styles.userLabel}>From</Text>
+                      <Text style={styles.userName}>{currentUserName}</Text>
+                      {currentUserPhone && <Text style={styles.userPhone}>{maskPhoneNumber(currentUserPhone)}</Text>}
+                    </View>
+                  </View>
+                </View>
+
+                <Text style={styles.dateTime}>{formattedTime} • {formattedDate}</Text>
+              </View>
+
+              <View style={styles.cardBottom}>
+                <View style={styles.transactionSection}>
+                  <Text style={styles.transactionLabel}>Transaction ID</Text>
+                  <Text style={styles.transactionId}>{transactionId}</Text>
+                </View>
+              </View>
+            </View>
           </View>
         </ViewShot>
 
-        {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
-          <View style={styles.buttonRow}>
-            <View style={styles.buttonHalf}>
-              <Button variant="secondary" onPress={handleShare}>
-                Share
-              </Button>
-            </View>
-            <View style={styles.buttonHalf}>
-              <Button variant="secondary" onPress={handleClose}>
-                Close
-              </Button>
-            </View>
-          </View>
+        <View style={styles.actionContainer}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleShare}
+          >
+            <Text style={styles.actionButtonText}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleClose}
+          >
+            <Text style={styles.actionButtonText}>Close</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ImageBackground>
@@ -223,6 +176,9 @@ export default function PaymentSuccess({ route, navigation }: Props) {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = Math.min(SCREEN_WIDTH * 0.75, 280);
+const CARD_HEIGHT = CARD_WIDTH * 1.5;
+const SCALE = CARD_WIDTH / 300;
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -233,121 +189,148 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 24,
   },
-  successIconContainer: {
-    marginBottom: 24,
+  backdropSquare: {
+    position: 'absolute',
+    width: CARD_WIDTH + 20,
+    height: CARD_HEIGHT * 0.63,
+    backgroundColor: colors.white,
+    opacity: 0.20,
+    borderRadius: 26,
+    top: '18%',
+    zIndex: 0,
   },
-  successIcon: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: colors.success,
+  cardWrapper: {
+    position: 'relative',
+    zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  successEmoji: {
-    fontSize: 50,
-    color: colors.white,
-    fontWeight: '700',
-  },
-  shareableContent: {
-    width: SCREEN_WIDTH * 0.9,
-    maxWidth: 400,
-    alignItems: 'center',
-    backgroundColor: colors.Background,
-    paddingVertical: 32,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  content: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 16,
-  },
-  detailsCard: {
-    width: '100%',
-    backgroundColor: 'transparent',
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: colors.buttonSecondaryBorder,
+    marginTop: 20,
     marginBottom: 20,
   },
-  detailRow: {
-    flexDirection: 'row',
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    borderRadius: 24,
+    backgroundColor: colors.Background,
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.buttonSecondaryBorder,
+    overflow: 'hidden',
+    padding: 28 * SCALE,
   },
-  detailLabel: {
-    fontSize: 13,
+  cardTop: {
+    alignItems: 'center',
+    paddingVertical: 12 * SCALE,
+    gap: 8 * SCALE,
+  },
+  amount: {
+    fontSize: 36 * SCALE,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'Minecraft',
+  },
+  brandName: {
+    fontSize: 14 * SCALE,
+    fontWeight: '600',
+    color: colors.primary,
+    letterSpacing: 2 * SCALE,
+    textTransform: 'uppercase',
+  },
+  cardMiddle: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userSection: {
+    width: '100%',
+    gap: 20 * SCALE,
+    marginBottom: 20 * SCALE,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10 * SCALE,
+  },
+  avatarSmall: {
+    width: 32 * SCALE,
+    height: 32 * SCALE,
+    borderRadius: 16 * SCALE,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userLabel: {
+    fontSize: 9 * SCALE,
     color: colors.textSecondary,
     fontWeight: '500',
+    marginBottom: 2 * SCALE,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5 * SCALE,
   },
-  detailValue: {
-    fontSize: 14,
-    color: colors.text,
+  userName: {
+    fontSize: 16 * SCALE,
     fontWeight: '600',
-    maxWidth: '60%',
-    textAlign: 'right',
+    color: colors.text,
+    marginBottom: 2 * SCALE,
   },
-  detailValueSmall: {
-    fontSize: 11,
-    color: colors.text,
-    fontWeight: '600',
+  userPhone: {
+    fontSize: 11 * SCALE,
+    color: colors.textSecondary,
     fontFamily: 'monospace',
-    maxWidth: '60%',
-    textAlign: 'right',
   },
-  amountValue: {
-    fontSize: 16,
-    color: colors.success,
-    fontWeight: '700',
-  },
-  statusBadge: {
-    backgroundColor: colors.success,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  statusText: {
-    fontSize: 11,
-    color: colors.white,
-    fontWeight: '600',
-  },
-  brandingText: {
-    fontSize: 12,
+  dateTime: {
+    fontSize: 12 * SCALE,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 16,
-    fontWeight: '500',
   },
-  buttonContainer: {
+  cardBottom: {
+    justifyContent: 'flex-end',
+  },
+  transactionSection: {
     width: '100%',
-    marginTop: 24,
+    paddingTop: 16 * SCALE,
+    borderTopWidth: 1,
+    borderTopColor: colors.buttonSecondaryBorder,
   },
-  buttonRow: {
+  transactionLabel: {
+    fontSize: 9 * SCALE,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginBottom: 6 * SCALE,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5 * SCALE,
+  },
+  transactionId: {
+    fontSize: 11 * SCALE,
+    color: colors.text,
+    fontWeight: '500',
+    fontFamily: 'monospace',
+    textAlign: 'center',
+  },
+  actionContainer: {
     flexDirection: 'row',
-    gap: 12,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    zIndex: 20,
+    marginTop: 20,
   },
-  buttonHalf: {
-    flex: 1,
+  actionButton: {
+    width: 100,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.white,
   },
 });

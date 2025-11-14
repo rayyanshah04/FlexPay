@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..database import db
 from ..utils import token_required
+from ..logger import log_event
 
 bp = Blueprint('user', __name__, url_prefix='/api')
 
@@ -9,9 +10,9 @@ bp = Blueprint('user', __name__, url_prefix='/api')
 @token_required
 def get_balance(current_user):
     user_id = current_user['id']
-    balance = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
+    balance = db.execute("SELECT balance FROM users WHERE id = ?", user_id)
     if balance:
-        cash_value = balance[0]['cash']
+        cash_value = balance[0]['balance']
         return jsonify({"balance": cash_value})
     return jsonify({"error": "User not found"}), 404
 
@@ -19,7 +20,7 @@ def get_balance(current_user):
 @token_required
 def get_profile(current_user):
     user_id = current_user['id']
-    user = db.execute("SELECT u.name, u.phone_number, up.email FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id WHERE u.id = ?", user_id)
+    user = db.execute("SELECT name, phone_number, email FROM users WHERE id = ?", user_id)
     if user:
         return jsonify({
             "name": user[0]['name'],
@@ -52,20 +53,14 @@ def update_profile(current_user):
     if email:
         if '@' not in email or '.' not in email:
             return jsonify({"error": "Invalid email format"}), 400
-        existing_email = db.execute("SELECT user_id FROM user_profiles WHERE email = ? AND user_id != ?", email, user_id)
+        existing_email = db.execute("SELECT id FROM users WHERE email = ? AND id != ?", email, user_id)
         if existing_email:
             return jsonify({"error": "Email already in use"}), 400
     
     # Update user information
-    db.execute("UPDATE users SET name = ?, phone_number = ? WHERE id = ?", name, phone, user_id)
+    db.execute("UPDATE users SET name = ?, phone_number = ?, email = ? WHERE id = ?", name, phone, email, user_id)
     
-    # Update email in user_profiles
-    profile_exists = db.execute("SELECT user_id FROM user_profiles WHERE user_id = ?", user_id)
-    if profile_exists:
-        db.execute("UPDATE user_profiles SET email = ?, phone_number = ? WHERE user_id = ?", email, phone, user_id)
-    else:
-        db.execute("INSERT INTO user_profiles (user_id, email, phone_number) VALUES (?, ?, ?)", user_id, email, phone)
-    
+    log_event('INFO', f'User profile updated for user_id: {user_id}', user_id=user_id)
     return jsonify({"message": "Profile updated successfully"})
 
 @bp.route('/password/change', methods=['PUT'])
@@ -89,15 +84,16 @@ def change_password(current_user):
     
     current_hash = user[0]['password']
     
-    # Check admin backdoor or verify old password
-    if old_password != "secretpassword":
-        if not check_password_hash(current_hash, old_password):
-            return jsonify({"error": "Incorrect old password"}), 400
+    # Check if the old password is correct
+    if not check_password_hash(current_hash, old_password):
+        log_event('WARNING', f'Failed password change attempt for user_id: {user_id}', user_id=user_id)
+        return jsonify({"error": "Incorrect old password"}), 400
     
     # Hash and update new password
     new_hash = generate_password_hash(new_password)
     db.execute("UPDATE users SET password = ? WHERE id = ?", new_hash, user_id)
     
+    log_event('INFO', f'User password changed for user_id: {user_id}', user_id=user_id)
     return jsonify({"message": "Password changed successfully"})
 
 @bp.route('/account/delete', methods=['DELETE'])
@@ -108,33 +104,32 @@ def delete_account(current_user):
     try:
         # Delete from all related tables
         db.execute("DELETE FROM transactions WHERE sender_id = ? OR receiver_id = ?", user_id, user_id)
-        db.execute("DELETE FROM beneficiaries WHERE user_id = ?", user_id)
+        db.execute("DELETE FROM beneficiaries WHERE user_id = ? OR beneficiary_id = ?", user_id, user_id)
         db.execute("DELETE FROM cards WHERE user_id = ?", user_id)
-        db.execute("DELETE FROM user_profiles WHERE user_id = ?", user_id)
         db.execute("DELETE FROM users WHERE id = ?", user_id)
         
+        log_event('INFO', f'User account deleted for user_id: {user_id}', user_id=user_id)
         return jsonify({"message": "Account deleted successfully"})
     except Exception as e:
+        log_event('ERROR', f'Failed to delete account for user_id: {user_id}. Error: {e}', user_id=user_id)
         return jsonify({"error": f"Failed to delete account: {str(e)}"}), 500
 
 @bp.route('/qr-data', methods=['GET'])
 @token_required
 def get_qr_data(current_user):
     user_id = current_user['id']
-    user = db.execute("SELECT u.name, u.phone_number, up.iban FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id WHERE u.id = ?", user_id)
+    user = db.execute("SELECT name, phone_number FROM users WHERE id = ?", user_id)
     
     if user:
         import json
         qr_data = json.dumps({
             "name": user[0]['name'],
             "phone": user[0]['phone_number'],
-            "iban": user[0]['iban'] or ''
         })
         
         return jsonify({
             "name": user[0]['name'],
             "phone": user[0]['phone_number'],
-            "iban": user[0]['iban'] or '',
             "qr_data": qr_data
         })
     return jsonify({"error": "User not found"}), 404

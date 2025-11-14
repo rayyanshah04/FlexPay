@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from ..database import db
 from ..utils import token_required
+from ..logger import log_event
 
 bp = Blueprint('beneficiary', __name__, url_prefix='/api')
 
@@ -8,68 +9,41 @@ bp = Blueprint('beneficiary', __name__, url_prefix='/api')
 @token_required
 def add_beneficiary(current_user):
     data = request.get_json()
-    name = data.get('name')
-    iban_or_number = data.get('iban_or_number')
-    note = data.get('note')
+    phone_number = data.get('phone_number') or data.get('iban_or_number')
     user_id = current_user['id']
 
-    # for debugging purposes
-    print(f"Received Beneficiary Data:\nName: {name}, IBAN/Number: {iban_or_number}, Note: {note}")
+    if not phone_number:
+        return jsonify({"error": "Phone number is required"}), 400
 
-    is_phone = iban_or_number.startswith('03')
-    is_iban = iban_or_number.startswith('PK04')
-    
-    if is_phone:
+    # Extract phone number from IBAN if IBAN format is provided
+    # IBAN format: PK04FLXP0000003XXXXXXXXX where X is the phone (last 11 digits)
+    if phone_number.startswith('PK04FLXP'):
+        phone_number = phone_number[-11:]  # Extract last 11 digits
 
-        # if user is trying to add themselves as beneficiary
-        user_id_beneficiary = db.execute("SELECT user_id FROM user_profiles WHERE phone_number = ?", iban_or_number)
-        user_own_phone = db.execute("SELECT phone_number FROM user_profiles WHERE user_id = ?", user_id)
-        if user_own_phone and user_own_phone[0]['phone_number'] == iban_or_number:
-            return jsonify({"error": "I know you love yourself so much :)"}), 400
-        
-        # if no user found with that phone number
-        if not user_id_beneficiary:
-            return jsonify({"error": "No user found with that phone number"}), 400
-        
-    elif is_iban:
-        # if user is trying to add themselves as beneficiary
-        user_id_beneficiary = db.execute("SELECT user_id FROM user_profiles WHERE iban = ?", iban_or_number)
-        user_own_iban = db.execute("SELECT iban FROM user_profiles WHERE user_id = ?", user_id)
-        if user_own_iban and user_own_iban[0]['iban'] == iban_or_number:
-            return jsonify({"error": "I know you love yourself so much :)"}), 400
-        
-        # if no user found with that phone number
-        if not user_id_beneficiary:
-            return jsonify({"error": "No user found with that IBAN"}), 400
-        
-    # if neither phone nor IBAN
-    else:
-        return jsonify({"error": "Invalid phone number or IBAN format"}), 400
-    
-    # if beneficiary already exists
-    beneficiary_id = user_id_beneficiary[0]['user_id']
-    existing_beneficiary = db.execute("SELECT * FROM beneficiaries WHERE user_id = ? AND beneficiary_user_id = ?", user_id, beneficiary_id)
+    # Find the beneficiary user by phone number
+    beneficiary_user = db.execute("SELECT id, name, phone_number FROM users WHERE phone_number = ?", phone_number)
+
+    if not beneficiary_user:
+        return jsonify({"error": "No user found with that phone number"}), 400
+
+    beneficiary_id = beneficiary_user[0]['id']
+
+    if user_id == beneficiary_id:
+        return jsonify({"error": "You cannot add yourself as a beneficiary"}), 400
+
+    existing_beneficiary = db.execute("SELECT * FROM beneficiaries WHERE user_id = ? AND beneficiary_id = ?", user_id, beneficiary_id)
     if existing_beneficiary:
         return jsonify({"error": "Beneficiary already exists"}), 400
     
-    # passing user's actual name if no name field provided
-    if not name or name.strip() == "":
-        profile = db.execute("SELECT name FROM users WHERE id = ?", beneficiary_id)
-        if profile:
-            name = profile[0]['name']
-        else:
-            name = "Unnamed Beneficiary"
+    db.execute("INSERT INTO beneficiaries (user_id, beneficiary_id) VALUES (?, ?)", user_id, beneficiary_id)
     
-    # if all checks passed, add beneficiary
-    db.execute("INSERT INTO beneficiaries (user_id, beneficiary_user_id, nickname, note) VALUES (?, ?, ?, ?)", user_id, beneficiary_id, name, note)
-    
+    log_event('INFO', f'User {user_id} added beneficiary {beneficiary_id}', user_id=user_id)
     
     return jsonify({
         "message": "Beneficiary Added Successfully",
         "beneficiary": {
-            "name": name,
-            "iban_or_number": iban_or_number,
-            "note": note
+            "name": beneficiary_user[0]['name'],
+            "phone_number": beneficiary_user[0]['phone_number']
         }
     })
 
@@ -78,24 +52,9 @@ def add_beneficiary(current_user):
 def get_beneficiaries(current_user):
     user_id = current_user['id']
     
-    beneficiaries_data = db.execute("SELECT beneficiaries.nickname, beneficiaries.note, users.name, user_profiles.phone_number, user_profiles.iban FROM beneficiaries JOIN users ON beneficiaries.beneficiary_user_id = users.id LEFT JOIN user_profiles ON beneficiaries.beneficiary_user_id = user_profiles.user_id WHERE beneficiaries.user_id = ?", user_id)
+    beneficiaries_data = db.execute("SELECT u.name, u.phone_number FROM beneficiaries b JOIN users u ON b.beneficiary_id = u.id WHERE b.user_id = ?", user_id)
 
-    beneficiaries_list = []
-    for beneficiary in beneficiaries_data:
-        iban_or_number = None
-        if beneficiary['phone_number']:
-            iban_or_number = beneficiary['phone_number']
-        elif beneficiary['iban']:
-            iban_or_number = beneficiary['iban']
-            
-        beneficiaries_list.append({
-            "nickname": beneficiary['nickname'],
-            "note": beneficiary['note'],
-            "name": beneficiary['name'],
-            "iban_or_number": iban_or_number
-        })
-        
-    return jsonify({"beneficiaries": beneficiaries_list})
+    return jsonify({"beneficiaries": beneficiaries_data})
 
 @bp.route('/search_user')
 @token_required
@@ -103,23 +62,16 @@ def search_user(current_user):
     query = request.args.get('q', '')
     user_id = current_user['id']
 
-    if not query or (not query.startswith('03') and not query.startswith('PK04')):
+    if not query:
         return jsonify({"user": None})
 
-    column = 'phone_number' if query.startswith('03') else 'iban'
-
     user_data = db.execute(
-        f"SELECT u.name, up.{column} FROM users u JOIN user_profiles up ON u.id = up.user_id WHERE up.{column} = ? AND u.id != ?",
+        "SELECT name, phone_number FROM users WHERE phone_number = ? AND id != ?",
         query, user_id
     )
 
     if user_data:
-        found_user = user_data[0]
-        result = {
-            "nickname": found_user['name'],
-            "name": found_user['name'],
-            "iban_or_number": found_user[column]
-        }
-        return jsonify({"user": result})
+        return jsonify({"user": user_data[0]})
 
     return jsonify({"user": None})
+

@@ -170,6 +170,33 @@ const MoreScreen = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Developer Tools */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🔧 Developer Tools</Text>
+
+        <TouchableOpacity
+          style={[styles.menuItem, styles.testMenuItem]}
+          onPress={() => {
+            // @ts-ignore
+            navigation.navigate('Home', { screen: 'TestNotification' });
+          }}
+        >
+          <View style={styles.menuIcon}>
+            <Text style={styles.iconEmoji}>🔔</Text>
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>Test Notifications</Text>
+            <Text style={styles.menuSubtitle}>Test push notifications</Text>
+          </View>
+          <ArrowUpIcon
+            width={16}
+            height={16}
+            fill={colors.textSecondary}
+            style={{ transform: [{ rotate: '90deg' }] }}
+          />
+        </TouchableOpacity>
+      </View>
+
       {/* Support */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Support</Text>
@@ -280,6 +307,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.buttonSecondaryBorder,
+  },
+  testMenuItem: {
+    backgroundColor: 'rgba(93, 163, 250, 0.1)',
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderBottomWidth: 0,
   },
   menuIcon: {
     width: 40,

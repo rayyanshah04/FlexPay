@@ -26,9 +26,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 type Props = NativeStackScreenProps<RootStackParamList, 'SendMoney'>;
 
 interface Beneficiary {
-  nickname: string;
+  nickname?: string;
   name: string;
-  iban_or_number: string;
+  phone_number: string;
+  iban_or_number?: string;
   color: string;
 }
 
@@ -84,13 +85,17 @@ export default function SendMoney({ navigation }: Props) {
 
     const localFiltered = beneficiaries.filter(b =>
       (b.nickname || b.name).toLowerCase().includes(accountNo.toLowerCase()) ||
-      b.iban_or_number.includes(accountNo)
+      (b.phone_number && b.phone_number.includes(accountNo)) ||
+      (b.iban_or_number && b.iban_or_number.includes(accountNo))
     );
     setDisplayedResults(localFiltered);
 
     const isNumberSearch = accountNo.startsWith('03') || accountNo.startsWith('PK04');
     if (isNumberSearch) {
-      const existsInBeneficiaries = beneficiaries.some(b => b.iban_or_number === accountNo);
+      const existsInBeneficiaries = beneficiaries.some(b => 
+        (b.phone_number && b.phone_number === accountNo) ||
+        (b.iban_or_number && b.iban_or_number === accountNo)
+      );
       if (existsInBeneficiaries) {
         return;
       }
@@ -104,8 +109,16 @@ export default function SendMoney({ navigation }: Props) {
           const data = await response.json();
           if (response.ok && data.user) {
             setDisplayedResults(prev => {
-              const suggested = { ...data.user, color: getRandomColor() };
-              const isAlreadyDisplayed = prev.some(u => u.iban_or_number === suggested.iban_or_number);
+              const suggested = { 
+                ...data.user,
+                phone_number: data.user.phone_number,
+                iban_or_number: data.user.iban_or_number || data.user.phone_number,
+                color: getRandomColor() 
+              };
+              const isAlreadyDisplayed = prev.some(u => 
+                (u.phone_number && suggested.phone_number && u.phone_number === suggested.phone_number) ||
+                (u.iban_or_number && suggested.iban_or_number && u.iban_or_number === suggested.iban_or_number)
+              );
               return isAlreadyDisplayed ? prev : [suggested, ...prev];
             });
           }
@@ -121,10 +134,17 @@ export default function SendMoney({ navigation }: Props) {
   }, [accountNo, beneficiaries, token]);
 
   const handleSelect = (user: Beneficiary) => {
+    // Use phone_number from backend, or extract from iban_or_number if needed
+    let phoneNumber = user.phone_number || user.iban_or_number || '';
+    if (!user.phone_number && phoneNumber && phoneNumber.startsWith('PK04FLXP')) {
+      phoneNumber = phoneNumber.slice(-11); // Last 11 digits
+    }
+    
     navigation.navigate('ConfirmPayment', {
       name: user.nickname || user.name,
-      iban: user.iban_or_number,
+      iban: user.iban_or_number || user.phone_number || '',
       amount: '10,000 PKR',
+      phone: phoneNumber,
     });
   };
 
@@ -167,7 +187,7 @@ export default function SendMoney({ navigation }: Props) {
           <View style={styles.userList}>
             {displayedResults.map(user => (
               <TouchableOpacity
-                key={user.iban_or_number}
+                key={user.phone_number || user.iban_or_number}
                 style={styles.userCard}
                 activeOpacity={0.8}
                 onPress={() => handleSelect(user)}
@@ -177,7 +197,11 @@ export default function SendMoney({ navigation }: Props) {
                 </View>
                 <View style={styles.userInfo}>
                   <Text style={styles.userName}>{user.nickname || user.name}</Text>
-                  <Text style={styles.userIban}>{user.iban_or_number}</Text>
+                  <Text style={styles.userPhone}>
+                    {user.phone_number || (user.iban_or_number && user.iban_or_number.startsWith('PK04FLXP') 
+                      ? user.iban_or_number.slice(-11)
+                      : user.iban_or_number) || 'N/A'}
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -275,10 +299,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
   },
-  userIban: {
+  userPhone: {
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
+    fontFamily: 'monospace',
   },
   buttonContainer: {
     position: 'absolute',

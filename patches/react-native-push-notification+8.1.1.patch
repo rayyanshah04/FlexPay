@@ -1,0 +1,115 @@
+diff --git a/node_modules/react-native-push-notification/CHANGELOG.md b/node_modules/react-native-push-notification/CHANGELOG.md
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/LICENSE b/node_modules/react-native-push-notification/LICENSE
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/README.md b/node_modules/react-native-push-notification/README.md
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/.classpath b/node_modules/react-native-push-notification/android/.classpath
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/.project b/node_modules/react-native-push-notification/android/.project
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/.settings/org.eclipse.buildship.core.prefs b/node_modules/react-native-push-notification/android/.settings/org.eclipse.buildship.core.prefs
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/android.iml b/node_modules/react-native-push-notification/android/android.iml
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/build.gradle b/node_modules/react-native-push-notification/android/build.gradle
+old mode 100644
+new mode 100755
+index d6019f6..4e5f570
+--- a/node_modules/react-native-push-notification/android/build.gradle
++++ b/node_modules/react-native-push-notification/android/build.gradle
+@@ -2,7 +2,6 @@ buildscript {
+     repositories {
+         mavenCentral()
+         google()
+-        jcenter()
+     }
+     dependencies {
+         classpath 'com.android.tools.build:gradle:3.2.0'
+@@ -13,7 +12,6 @@ allprojects {
+     repositories {
+         mavenCentral()
+         google()
+-        jcenter()
+     }
+ }
+ 
+diff --git a/node_modules/react-native-push-notification/android/gradle/wrapper/gradle-wrapper.jar b/node_modules/react-native-push-notification/android/gradle/wrapper/gradle-wrapper.jar
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/gradle/wrapper/gradle-wrapper.properties b/node_modules/react-native-push-notification/android/gradle/wrapper/gradle-wrapper.properties
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/gradlew b/node_modules/react-native-push-notification/android/gradlew
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/gradlew.bat b/node_modules/react-native-push-notification/android/gradlew.bat
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/AndroidManifest.xml b/node_modules/react-native-push-notification/android/src/main/AndroidManifest.xml
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/ReactNativePushNotificationPackage.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/ReactNativePushNotificationPackage.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/helpers/ApplicationBadgeHelper.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/helpers/ApplicationBadgeHelper.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotification.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotification.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationActions.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationActions.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationAttributes.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationAttributes.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationBootEventReceiver.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationBootEventReceiver.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationConfig.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationConfig.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationHelper.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationHelper.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationJsDelivery.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationJsDelivery.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationListenerService.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationListenerService.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationPicturesAggregator.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationPicturesAggregator.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationPublisher.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNPushNotificationPublisher.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNReceivedMessageHandler.java b/node_modules/react-native-push-notification/android/src/main/java/com/dieam/reactnativepushnotification/modules/RNReceivedMessageHandler.java
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/component/index.android.js b/node_modules/react-native-push-notification/component/index.android.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/component/index.ios.js b/node_modules/react-native-push-notification/component/index.ios.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/component/index.js b/node_modules/react-native-push-notification/component/index.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/index.js b/node_modules/react-native-push-notification/index.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/react-native.config.js b/node_modules/react-native-push-notification/react-native.config.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/react-native-push-notification/trouble-shooting.md b/node_modules/react-native-push-notification/trouble-shooting.md
+old mode 100644
+new mode 100755

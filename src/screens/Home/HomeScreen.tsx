@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { login } from '../../slices/authSlice';
+import NotificationService from '../../utils/NotificationService';
 // icons
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import StarIcon from '../../assets/icons/star.svg';
@@ -41,6 +42,8 @@ const HomeScreen = () => {
   const [balance, setBalance] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hasCard, setHasCard] = useState(false);
+  const previousBalance = useRef<number | null>(null);
+  
   const fetchBalance = async () => {
     try {
       const userDetails = await AsyncStorage.getItem('userDetails');
@@ -53,6 +56,14 @@ const HomeScreen = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch balance');
       const data = await response.json();
+      
+      // Check if balance increased (money received)
+      if (previousBalance.current !== null && data.balance > previousBalance.current) {
+        const difference = data.balance - previousBalance.current;
+        NotificationService.transactionNotification('received', difference.toFixed(2), 'Someone');
+      }
+      
+      previousBalance.current = data.balance;
       setBalance(data.balance);
     } catch (err) {
       console.error(err);

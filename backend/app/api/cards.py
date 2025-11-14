@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from faker import Faker
 from ..database import db
 from ..utils import token_required
+from ..logger import log_event
 
 bp = Blueprint('cards', __name__, url_prefix='/api')
 
@@ -24,9 +25,9 @@ def has_card(current_user):
     user_id = current_user['id']
     
     # check if user has a card
-    card = db.execute("SELECT id FROM cards WHERE user_id = ?", user_id)
+    user = db.execute("SELECT has_card FROM users WHERE id = ?", user_id)
     
-    if card:
+    if user and user[0]['has_card']:
         return jsonify({"has_card": True})
     else:
         return jsonify({"has_card": False})
@@ -45,8 +46,8 @@ def get_card(current_user):
         return jsonify({"error": "Missing cardType in request body"}), 400
 
     # check if user has card
-    has_card_list = db.execute("SELECT id FROM cards WHERE user_id = ?", user_id)
-    if has_card_list:
+    user = db.execute("SELECT has_card FROM users WHERE id = ?", user_id)
+    if user and user[0]['has_card']:
         return jsonify({"error": "User Already has a Card"}), 409
     
 
@@ -68,11 +69,12 @@ def get_card(current_user):
     expiry_date = fake.credit_card_expire()
     
     # adding card flag to databse
-    db.execute("UPDATE user_profiles SET has_card = 1 WHERE user_id = ?", user_id)
+    db.execute("UPDATE users SET has_card = 1 WHERE id = ?", user_id)
 
     #adding card details to database
-    db.execute("INSERT INTO cards (user_id, card_number, cvc, expiry_date) VALUES (?, ?, ?, ?)", user_id, card_number, cvc, expiry_date)
+    db.execute("INSERT INTO cards (user_id, card_number, cvc, expiry_date, card_type) VALUES (?, ?, ?, ?, ?)", user_id, card_number, cvc, expiry_date, chosen_card_type)
 
+    log_event('INFO', f'New card created for user_id: {user_id}, type: {chosen_card_type}', user_id=user_id)
     return jsonify({"message": f"Card type '{chosen_card_type}' created successfully"}), 201
 
 @bp.route('/get_card_details', methods=['POST'])
@@ -81,7 +83,7 @@ def get_card_details(current_user):
     user_id = current_user['id']
     
     card_details_list = db.execute(
-        "SELECT c.card_number, c.cvc, c.expiry_date, u.name "
+        "SELECT c.card_number, c.cvc, c.expiry_date, c.card_type, u.name "
         "FROM cards c JOIN users u ON c.user_id = u.id "
         "WHERE c.user_id = ?",
         user_id
@@ -90,13 +92,16 @@ def get_card_details(current_user):
     if card_details_list:
         card_details = card_details_list[0]
         card_number = card_details['card_number'].replace(" ", "")
-        card_type = 'unknown'
-        if card_number.startswith('4'):
-            card_type = 'visa'
-        elif card_number.startswith('5'):
-            card_type = 'mastercard'
-        elif card_number.startswith('34') or card_number.startswith('37'):
-            card_type = 'amex'
+        card_type = card_details['card_type'] or 'unknown'
+        
+        # Fallback: detect from card number if card_type is not set
+        if not card_details['card_type']:
+            if card_number.startswith('4'):
+                card_type = 'visa'
+            elif card_number.startswith('5'):
+                card_type = 'mastercard'
+            elif card_number.startswith('34') or card_number.startswith('37'):
+                card_type = 'amex'
 
         return jsonify({
             "cardNumber": card_details['card_number'],
