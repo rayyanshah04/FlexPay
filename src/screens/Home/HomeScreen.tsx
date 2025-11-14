@@ -104,7 +104,7 @@ const HomeScreen = () => {
       id: 1,
       name: 'Dribble',
       time: 'Today, 15:10',
-      amount: '-$142.00',
+      amount: '-$149.00',
       type: 'transfer',
       icon: '🎯',
     },
@@ -135,15 +135,19 @@ const HomeScreen = () => {
   ];
 
  return (
-  <View
-    style={[
-      styles.container,
+  <ScrollView
+    style={styles.container}
+    contentContainerStyle={[
+      styles.scrollContent,
       {
         paddingTop: insets.top + 24,
         paddingBottom: insets.bottom + 120,
-        paddingHorizontal: 24, // keep side margins
+        paddingHorizontal: 24,
       },
     ]}
+    refreshControl={
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    }
   >
     {/* Header */}
     <View style={styles.header}>
@@ -268,7 +272,7 @@ const HomeScreen = () => {
         ))}
       </View>
     </View>
-  </View>
+  </ScrollView>
 );
 
 };

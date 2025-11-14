@@ -36,6 +36,12 @@ const defaultHeaderOptions = {
   headerTitleStyle: {
     color: colors.white,
     fontWeight: '600',
+    fontSize: 18,
+    marginTop: 30,
+  },
+  headerStyle: {
+    backgroundColor: 'transparent',
+    height: 100,
   },
 };
 

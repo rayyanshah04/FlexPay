@@ -47,8 +47,8 @@ export default function BottomBar() {
               }
             >
               <HouseIcon
-                width={24}
-                height={24}
+                width={22}
+                height={22}
                 fill={
                   activeTabForStyling === 'Home'
                     ? colors.primary
@@ -71,8 +71,8 @@ export default function BottomBar() {
               }
             >
               <ScanIcon
-                width={24}
-                height={24}
+                width={22}
+                height={22}
                 fill={
                   activeTabForStyling === 'Scan QR'
                     ? colors.primary
@@ -95,8 +95,8 @@ export default function BottomBar() {
               }
             >
               <MenuIcon
-                width={24}
-                height={24}
+                width={22}
+                height={22}
                 fill={
                   activeTabForStyling === 'More'
                     ? colors.primary
@@ -165,17 +165,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 24,
-    paddingTop: 16,
+    paddingBottom: 20,
+    paddingTop: 14,
     paddingHorizontal: 24,
     backgroundColor: 'transparent', // <- must be transparent
   },
   pillContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.1)', // <-- optional translucent if you want blur effect
+    backgroundColor: 'rgba(255,255,255,0.2)', // <-- optional translucent if you want blur effect
     borderRadius: 50,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
     justifyContent: 'space-around',
     alignItems: 'center',
   },
@@ -183,21 +183,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   iconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
     overflow: 'hidden',
   },
   activeIconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: `rgba(255, 255, 255)`,

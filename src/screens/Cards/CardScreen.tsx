@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
-  ScrollView,
   Text,
   TouchableOpacity,
   ImageBackground,
   ActivityIndicator,
   Alert,
   Clipboard,
+  Dimensions,
 } from 'react-native';
 import { colors } from '../../theme/style';
 import { Button } from '../../components/ui/Button';
@@ -100,7 +100,7 @@ export default function CardScreen() {
       checkCardStatus();
       const intervalId = setInterval(checkCardStatus, 3000);
       return () => clearInterval(intervalId);
-    }, [token, navigation])
+    }, [token, navigation]),
   );
 
   const getCardLogo = (cardType: Card['cardType']) => {
@@ -111,13 +111,16 @@ export default function CardScreen() {
         return <AmericanExpressLogo width={60} height={38} />;
       case 'mastercard':
       default:
-        return <MastercardLogo width={60} height={38} />;
+        return <MastercardLogo width={80} height={50} />;
     }
   };
 
   const copyToClipboard = (text: string, label: string) => {
     Clipboard.setString(text);
-    Alert.alert(`${label} Copied`, `${text} has been copied to your clipboard.`);
+    Alert.alert(
+      `${label} Copied`,
+      `${text} has been copied to your clipboard.`,
+    );
   };
 
   const formatCardholderName = (name: string) => {
@@ -131,7 +134,7 @@ export default function CardScreen() {
   const formatCardNumberDisplay = (fullNumber: string, isVisible: boolean) => {
     const cleanedNumber = fullNumber.replace(/\s/g, '');
     const lastFour = cleanedNumber.slice(12, 16);
-    
+
     if (!isVisible) {
       return ['•••• •••• ••••', lastFour];
     } else {
@@ -154,7 +157,9 @@ export default function CardScreen() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>No card found.</Text>
-        <Button onPress={() => navigation.replace('GetCardScreen')}>Get a Card</Button>
+        <Button onPress={() => navigation.replace('GetCardScreen')}>
+          Get a Card
+        </Button>
       </View>
     );
   }
@@ -167,10 +172,9 @@ export default function CardScreen() {
         resizeMode: 'cover',
       }}
     >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
+      <View
+        style={[
+          styles.container,
           {
             paddingTop: insets.top + 24,
             paddingBottom: insets.bottom + 120,
@@ -183,6 +187,9 @@ export default function CardScreen() {
         <View style={styles.cardWrapper}>
           <View style={styles.card}>
             <View style={styles.cardTop}>
+              <View style={styles.cardLogoContainer}>
+                {getCardLogo(cardDetails.cardType)}
+              </View>
               <TouchableOpacity
                 onPress={() => setIsCardVisible(!isCardVisible)}
                 style={styles.showButton}
@@ -221,17 +228,18 @@ export default function CardScreen() {
                     {formatCardholderName(cardDetails.cardHolderName)}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.expirySection}
-                  activeOpacity={0.7}
-                  onPress={() => copyToClipboard(cardDetails.expiryDate, 'Expiry Date')}
-                >
-                  <Text style={styles.detailLabel}>VALID THRU</Text>
-                  <Text style={styles.detailValue}>{cardDetails.expiryDate}</Text>
-                </TouchableOpacity>
+                <View style={styles.detailsRow}>
+                  <TouchableOpacity
+                    style={styles.expirySection}
+                    activeOpacity={0.7}
+                    onPress={() => copyToClipboard(cardDetails.expiryDate, 'Expiry Date')}
+                  >
+                    <Text style={styles.detailLabel}>VALID THRU</Text>
+                    <Text style={styles.detailValue}>{cardDetails.expiryDate}</Text>
+                  </TouchableOpacity>
+                </View>
                 <Text style={styles.cardTypeLabel}>DEBIT CARD</Text>
               </View>
-
               <View style={styles.cardBottomRight}>
                 <TouchableOpacity
                   style={styles.cvcSection}
@@ -243,9 +251,6 @@ export default function CardScreen() {
                     {isCardVisible ? cardDetails.cvc : '•••'}
                   </Text>
                 </TouchableOpacity>
-                <View style={styles.cardLogoContainer}>
-                  {getCardLogo(cardDetails.cardType)}
-                </View>
               </View>
             </View>
           </View>
@@ -275,10 +280,15 @@ export default function CardScreen() {
           </TouchableOpacity>
         </View>
 
-      </ScrollView>
+      </View>
     </ImageBackground>
   );
 }
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const CARD_WIDTH = Math.min(SCREEN_WIDTH * 0.75, 280);
+const CARD_HEIGHT = CARD_WIDTH * 1.5;
+const SCALE = CARD_WIDTH / 300;
 
 const styles = StyleSheet.create({
   centered: {
@@ -297,47 +307,44 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
   backdropSquare: {
     position: 'absolute',
-    width: 320,
-    height: 300,
+    width: CARD_WIDTH + 20,
+    height: CARD_HEIGHT * 0.63,
     backgroundColor: colors.white,
     opacity: 0.20,
     borderRadius: 26,
-    top: '18.5%',
-    left: '56.7%',
-    marginLeft: -160,
+    top: '18%',
     zIndex: 0,
   },
   cardWrapper: {
     position: 'relative',
     zIndex: 10,
-    marginBottom: 60,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
   },
   card: {
-    marginTop: 40,
-    width: 300,
-    height: 475,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     borderRadius: 24,
     backgroundColor: colors.Background,
     justifyContent: 'space-between',
     overflow: 'hidden',
-    padding: 28,
+    padding: 28 * SCALE,
   },
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   cardLogoContainer: {
-    marginTop: 16,
-    alignItems: 'flex-end',
+    // Now on top left
   },
   showButton: {
     width: 40,
@@ -355,11 +362,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   cardNumberRow: {
-    fontSize: 20,
+    fontSize: 20 * SCALE,
     fontWeight: '500',
     color: colors.text,
-    letterSpacing: 3,
-    marginBottom: 6,
+    letterSpacing: 3 * SCALE,
+    marginBottom: 6 * SCALE,
   },
   cardBottom: {
     flexDirection: 'row',
@@ -377,42 +384,41 @@ const styles = StyleSheet.create({
   cardholderSection: {
   },
   cardholderName: {
-    fontSize: 35,
+    fontSize: 35 * SCALE,
     fontWeight: '600',
     color: colors.text,
-    lineHeight: 40, // Adjusted for larger font size
-    letterSpacing: 0.5,
-    fontFamily: Platform.select({
-      ios: 'Menlo', // A common monospace font on iOS
-      android: 'monospace', // Generic monospace on Android
-      default: 'monospace',
-    }),
+    lineHeight: 40 * SCALE,
+    letterSpacing: 0.5 * SCALE,
+    fontFamily: 'Minecraft',
     textTransform: 'uppercase',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    marginTop: 12 * SCALE,
   },
   cvcSection: {
     alignItems: 'flex-end',
   },
   expirySection: {
     alignItems: 'flex-start',
-    marginTop: 12,
   },
   detailLabel: {
-    fontSize: 9,
+    fontSize: 9 * SCALE,
     fontWeight: '500',
     color: colors.textSecondary,
-    marginBottom: 3,
-    letterSpacing: 0.3,
+    marginBottom: 3 * SCALE,
+    letterSpacing: 0.3 * SCALE,
   },
   detailValue: {
-    fontSize: 14,
+    fontSize: 14 * SCALE,
     fontWeight: '600',
     color: colors.text,
   },
   cardTypeLabel: {
-    fontSize: 12,
+    fontSize: 12 * SCALE,
     fontWeight: '600',
     color: colors.textSecondary,
-    marginTop: 12,
+    marginTop: 12 * SCALE,
   },
   actionContainer: {
     flexDirection: 'row',
@@ -420,14 +426,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 20,
+    paddingBottom: 20,
   },
   iconButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 72 * SCALE,
+    height: 72 * SCALE,
+    borderRadius: 36 * SCALE,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 20,
+    marginHorizontal: 20 * SCALE,
   },
 });

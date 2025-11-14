@@ -143,7 +143,7 @@ export default function SendMoney({ navigation }: Props) {
               <ScanIcon width={20} height={20} fill={colors.placeholder} />
             </View>
             <TextInput
-              placeholder="Search by name, phone, or IBAN..."
+              placeholder="name, phone, or IBAN..."
               value={accountNo}
               onChangeText={setAccountNo}
               autoCapitalize="none"

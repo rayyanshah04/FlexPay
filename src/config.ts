@@ -4,7 +4,11 @@ import { Platform } from 'react-native';
 const environments = {
     local: {
         // For Android emulator, 10.0.2.2 points to the host machine's localhost
-        API_BASE: Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000',
+        // API_BASE: Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000',
+        
+        // For physical Android device, use your computer's local IP address
+        // Make sure your phone and computer are on the same WiFi network
+        API_BASE: Platform.OS === 'android' ? 'http://192.168.0.205:5000' : 'http://localhost:5000',
     },
     production: {
         API_BASE: 'https://flexpay-backend.onrender.com',
