@@ -20,6 +20,8 @@ import { colors } from '../../theme/style';
 import { API_BASE } from '../../config';
 import { selectToken } from '../../slices/authSlice';
 import { Button } from '../../components/ui/Button';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SendMoney'>;
 
@@ -31,6 +33,7 @@ interface Beneficiary {
 }
 
 export default function SendMoney({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [accountNo, setAccountNo] = useState('');
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [displayedResults, setDisplayedResults] = useState<Beneficiary[]>([]);
@@ -126,16 +129,14 @@ export default function SendMoney({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        
       >
-        <View style={styles.scrollContent}>
+        <View style={[styles.scrollContent, { paddingTop: insets.top + 60, paddingBottom: 160 }]}>
           {/* Search Input */}
           <View style={styles.inputContainer}>
             <View style={styles.inputIcon}>
@@ -185,15 +186,15 @@ export default function SendMoney({ navigation }: Props) {
       </ScrollView>
 
       {/* Add Button at Bottom */}
-      <View style={styles.buttonContainer}>
+      <View style={[styles.buttonContainer, { bottom: insets.bottom }]}>
         <Button
           variant="primary"
           onPress={() => navigation.navigate('AddingBeneficiary')}
         >
-          ADD A BENEFICIARY
+          Add a Beneficary
         </Button>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -206,14 +207,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 140,
     paddingHorizontal: 24,
-    paddingBottom: 120,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary,
+    backgroundColor: 'transparent',
     borderRadius: 12,
     paddingHorizontal: 16,
     marginBottom: 24,
@@ -250,16 +249,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   userList: {
-    gap: 12,
+    // gap removed, will use borders for separation
   },
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: `rgba(255, 255, 255, 0.1)`,
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: `rgba(255, 255, 255, 0.05)`,
   },
   avatar: {
     width: 50,
@@ -284,9 +282,9 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 40,
     left: 0,
     right: 0,
+    marginBottom : 100,
     padding: 24,
     backgroundColor: colors.Background,
     borderTopWidth: 1,

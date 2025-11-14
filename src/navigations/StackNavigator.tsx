@@ -71,6 +71,9 @@ export default function StackNavigator() {
               // headerShadowVisible: false,
               // headerTintColor: '#fff',
               // headerTitle: paymentHeader,
+              ...(screen.name === 'AppTabs' && {
+                contentStyle: { backgroundColor: 'transparent' },
+              }),
             }}
           />
         ))}

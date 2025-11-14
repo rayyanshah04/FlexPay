@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/Home/HomeScreen';
 import CardScreen from '../screens/Cards/CardScreen';
 import NoCardScreen from '../screens/Cards/NoCardScreen';
+import GetCardScreen from '../screens/Cards/GetCardScreen'; // Import new screen
 import LoadMoneyScreen from '../screens/Wallet/LoadMoneyScreen';
 import PaymentScreen from '../screens/Payments/PaymentScreen';
 // --- FIX: Import the missing screens ---
@@ -19,6 +20,7 @@ export type HomeStackParamList = {
   HomeMain: undefined;
   CardScreen: undefined;
   NoCardScreen: undefined;
+  GetCardScreen: undefined; // Add new screen to type
   LoadMoneyScreen: undefined; // Renamed from LoadMoney
   PaymentScreen: undefined; // Renamed from Payment
   SendMoney: undefined; // Added
@@ -43,7 +45,10 @@ export default function HomeStack() {
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <Stack.Screen
         name="CardScreen"
@@ -59,6 +64,15 @@ export default function HomeStack() {
         component={NoCardScreen}
         options={{
           title: 'My Cards',
+          headerTitleAlign: 'center',
+          ...defaultHeaderOptions,
+        }}
+      />
+      <Stack.Screen
+        name="GetCardScreen"
+        component={GetCardScreen}
+        options={{
+          title: 'Get a New Card',
           headerTitleAlign: 'center',
           ...defaultHeaderOptions,
         }}

@@ -10,8 +10,19 @@ import {
 import { colors } from '../../theme/style';
 import LockIcon from '../../assets/icons/lock.svg';
 import { Button } from '../../components/ui/Button';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { HomeStackParamList } from '../../navigations/HomeStack';
+
+type NoCardScreenNavigationProp = NativeStackNavigationProp<
+  HomeStackParamList,
+  'NoCardScreen'
+>;
 
 export default function NoCardScreen() {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NoCardScreenNavigationProp>();
   return (
     <ImageBackground
       source={require('../../assets/bg.png')}
@@ -22,8 +33,16 @@ export default function NoCardScreen() {
     >
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[
+        styles.scrollContent,
+        {
+          paddingTop: insets.top + 24,
+          paddingBottom: insets.bottom + 120,
+          paddingHorizontal: 24, // same as HomeScreen
+        },
+      ]}
       >
+
         {/* Backdrop Square */}
         <View style={styles.backdropSquare} />
 
@@ -42,10 +61,10 @@ export default function NoCardScreen() {
           <Text style={styles.noticeSubText}>Get one now!</Text>
           <Button
             variant="primary"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('GetCardScreen')}
             style={{ marginTop: 16 }}
           >
-            GET A VIRTUAL CARD
+            Get a Virtual Card
           </Button>
         </View>
       </ScrollView>

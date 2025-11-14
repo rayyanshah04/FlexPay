@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import HomeStack from './HomeStack';
 import MoreScreen from '../screens/Home/MoreScreen';
 import { colors } from '../theme/style';
@@ -16,38 +17,43 @@ const Tab = createBottomTabNavigator();
 const DummyScanScreen = () => null;
 
 export default function BottomBar() {
-  const [activeTab, setActiveTab] = useState('Home');
+  const CustomTabBar = ({ state, navigation }: any) => {
+    const currentTabRoute = state.routes[state.index];
+    const focusedRouteName = getFocusedRouteNameFromRoute(currentTabRoute);
 
-  const handleTabPress = (tabName: string, navigation: any) => {
-    setActiveTab(tabName);
-    if (tabName === 'Home') {
-      navigation.navigate('Home');
-    } else if (tabName === 'Scan QR') {
-      navigation.navigate('Home', { screen: 'QRCodeScreen' });
-    } else if (tabName === 'More') {
-      navigation.navigate('More');
+    let activeTabForStyling = currentTabRoute.name;
+
+    if (currentTabRoute.name === 'Home') {
+      if (focusedRouteName === 'QRCodeScreen') {
+        activeTabForStyling = 'Scan QR';
+      } else if (focusedRouteName === 'HomeMain' || focusedRouteName === undefined) {
+        activeTabForStyling = 'Home';
+      }
     }
-  };
 
-  const CustomTabBar = ({ navigation }: any) => {
     return (
       <View style={styles.tabBarContainer}>
         <View style={styles.pillContainer}>
           {/* Home Button */}
           <TouchableOpacity
             style={styles.tabButton}
-            onPress={() => handleTabPress('Home', navigation)}
+            onPress={() => navigation.navigate('Home')}
           >
             <View
-              style={[
-                styles.iconCircle,
-                activeTab === 'Home' && styles.activeCircle,
-              ]}
+              style={
+                activeTabForStyling === 'Home'
+                  ? styles.activeIconCircle
+                  : styles.iconCircle
+              }
             >
               <HouseIcon
                 width={24}
                 height={24}
-                fill={activeTab === 'Home' ? colors.primary : `rgba(255, 255, 255, 0.6)`}
+                fill={
+                  activeTabForStyling === 'Home'
+                    ? colors.primary
+                    : `rgba(255, 255, 255, 0.6)`
+                }
               />
             </View>
           </TouchableOpacity>
@@ -55,18 +61,23 @@ export default function BottomBar() {
           {/* Scan QR Button */}
           <TouchableOpacity
             style={styles.tabButton}
-            onPress={() => handleTabPress('Scan QR', navigation)}
+            onPress={() => navigation.navigate('Scan QR')}
           >
             <View
-              style={[
-                styles.iconCircle,
-                activeTab === 'Scan QR' && styles.activeCircle,
-              ]}
+              style={
+                activeTabForStyling === 'Scan QR'
+                  ? styles.activeIconCircle
+                  : styles.iconCircle
+              }
             >
               <ScanIcon
                 width={24}
                 height={24}
-                fill={activeTab === 'Scan QR' ? colors.primary : `rgba(255, 255, 255, 0.6)`}
+                fill={
+                  activeTabForStyling === 'Scan QR'
+                    ? colors.primary
+                    : `rgba(255, 255, 255, 0.6)`
+                }
               />
             </View>
           </TouchableOpacity>
@@ -74,18 +85,23 @@ export default function BottomBar() {
           {/* More Button */}
           <TouchableOpacity
             style={styles.tabButton}
-            onPress={() => handleTabPress('More', navigation)}
+            onPress={() => navigation.navigate('More')}
           >
             <View
-              style={[
-                styles.iconCircle,
-                activeTab === 'More' && styles.activeCircle,
-              ]}
+              style={
+                activeTabForStyling === 'More'
+                  ? styles.activeIconCircle
+                  : styles.iconCircle
+              }
             >
               <MenuIcon
                 width={24}
                 height={24}
-                fill={activeTab === 'More' ? colors.primary : `rgba(255, 255, 255, 0.6)`}
+                fill={
+                  activeTabForStyling === 'More'
+                    ? colors.primary
+                    : `rgba(255, 255, 255, 0.6)`
+                }
               />
             </View>
           </TouchableOpacity>
@@ -95,65 +111,73 @@ export default function BottomBar() {
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/bg.png')}
-      style={styles.backgroundContainer}
-      imageStyle={{
-        resizeMode: 'cover',
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: 'transparent', // make navigator itself transparent
+          borderTopWidth: 0,
+          elevation: 0,
+        },
+        sceneContainerStyle: {
+          backgroundColor: 'transparent', // makes screen background show
+        },
       }}
+      tabBar={props => <CustomTabBar {...props} />}
     >
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{
+          tabBarLabel: 'Home',
         }}
-        tabBar={(props) => <CustomTabBar {...props} />}
-      >
-        <Tab.Screen
-          name="Home"
-          component={HomeStack}
-          options={{
-            tabBarLabel: 'Home',
-          }}
-        />
+      />
 
-        <Tab.Screen
-          name="Scan QR"
-          component={DummyScanScreen}
-          options={{
-            tabBarLabel: '',
-          }}
-        />
+      <Tab.Screen
+        name="Scan QR"
+        component={DummyScanScreen}
+        options={{
+          tabBarLabel: '',
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: e => {
+            e.preventDefault();
+            navigation.navigate('Home', { screen: 'QRCodeScreen' });
+          },
+        })}
+      />
 
-        <Tab.Screen
-          name="More"
-          component={MoreScreen}
-          options={{
-            tabBarLabel: 'More',
-          }}
-        />
-      </Tab.Navigator>
-    </ImageBackground>
+      <Tab.Screen
+        name="More"
+        component={MoreScreen}
+        options={{
+          tabBarLabel: 'More',
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundContainer: {
-    flex: 1,
-  },
   tabBarContainer: {
-    backgroundColor: 'transparent',
+    position: 'absolute', // overlay on top of screen
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingBottom: 24,
     paddingTop: 16,
     paddingHorizontal: 24,
+    backgroundColor: 'transparent', // <- must be transparent
   },
   pillContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.secondary,
+    backgroundColor: 'rgba(255,255,255,0.1)', // <-- optional translucent if you want blur effect
     borderRadius: 50,
     paddingVertical: 12,
     paddingHorizontal: 20,
     justifyContent: 'space-around',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   tabButton: {
     flex: 1,
@@ -168,8 +192,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
+    overflow: 'hidden',
   },
-  activeCircle: {
+  activeIconCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: `rgba(255, 255, 255)`,
+    overflow: 'hidden',
   },
 });

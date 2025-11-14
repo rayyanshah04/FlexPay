@@ -9,6 +9,7 @@ import ShowIcon from '../../assets/icons/show.svg';
 import HideIcon from '../../assets/icons/hide.svg';
 import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/arrow-down.svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   StyleSheet,
   ScrollView,
@@ -33,6 +34,7 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<
 const HomeScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const insets = useSafeAreaInsets();
   const [userName, setUserName] = useState('User');
   const [isBalanceVisible, setIsBalanceVisible] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
@@ -125,136 +127,143 @@ const HomeScreen = () => {
     },
   ];
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greetingTitle}>Hi, {userName}</Text>
-          <Text style={styles.greetingSubtitle}>Welcome back</Text>
-        </View>
-        <View style={styles.profilePic}>
-          <UserIcon width={30} height={30} fill={colors.white} />
-        </View>
+ return (
+  <View
+    style={[
+      styles.container,
+      {
+        paddingTop: insets.top + 24,
+        paddingBottom: insets.bottom + 120,
+        paddingHorizontal: 24, // keep side margins
+      },
+    ]}
+  >
+    {/* Header */}
+    <View style={styles.header}>
+      <View>
+        <Text style={styles.greetingTitle}>Hi, {userName}</Text>
+        <Text style={styles.greetingSubtitle}>Welcome back</Text>
       </View>
-      {/* Balance Card */}
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() =>
-          navigation.navigate(hasCard ? 'CardScreen' : 'NoCardScreen')
-        }
-        style={styles.balanceCardWrapper}
+      <View style={styles.profilePic}>
+        <UserIcon width={30} height={30} fill={colors.white} />
+      </View>
+    </View>
+
+    {/* Balance Card */}
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() =>
+        navigation.navigate(hasCard ? 'CardScreen' : 'NoCardScreen')
+      }
+      style={styles.balanceCardWrapper}
+    >
+      <ImageBackground
+        source={require('../../assets/bg.png')}
+        style={styles.gradientCard}
+        imageStyle={{
+          resizeMode: 'contain',
+          transform: [{ rotate: '90deg' }, { scaleX: -1 }, { scale: 3 }],
+          right: 120,
+          top: 10,
+        }}
+        resizeMode="contain"
       >
-        <ImageBackground
-          source={require('../../assets/bg.png')}
-          style={styles.gradientCard}
-          imageStyle={{
-            resizeMode: 'contain',
-            transform: [{ rotate: '90deg' }, { scaleX: -1 }, { scale: 3 }],
-            right: 120,
-            top: 10,
-          }}
-          resizeMode="contain"
-        >
-          <View style={styles.balanceContent}>
-            <View style={styles.balanceTitleContainer}>
-              <Text style={styles.balanceTitle}>Total Balance</Text>
-              <TouchableOpacity
-                onPress={() => setIsBalanceVisible(!isBalanceVisible)}
-              >
-                {isBalanceVisible ? (
-                  <ShowIcon width={24} height={24} fill={colors.white} />
-                ) : (
-                  <HideIcon width={24} height={24} fill={colors.white} />
-                )}
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.balanceAmount}>
-              {isBalanceVisible
-                ? balance !== null
-                  ? `Rs. ${new Intl.NumberFormat('en-IN', {
+        <View style={styles.balanceContent}>
+          <View style={styles.balanceTitleContainer}>
+            <Text style={styles.balanceTitle}>Total Balance</Text>
+            <TouchableOpacity
+              onPress={() => setIsBalanceVisible(!isBalanceVisible)}
+            >
+              {isBalanceVisible ? (
+                <ShowIcon width={24} height={24} fill={colors.white} />
+              ) : (
+                <HideIcon width={24} height={24} fill={colors.white} />
+              )}
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.balanceAmount}>
+            {isBalanceVisible
+              ? balance !== null
+                ? `Rs. ${new Intl.NumberFormat('en-IN', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   }).format(balance)}`
-                  : '...'
-                : '******'}
-            </Text>
-          </View>
-        </ImageBackground>
-      </TouchableOpacity>
-      {/* Actions */}
-      <View style={styles.actionsContainer}>
-        <Button
-          variant="primary"
-          icon={() => <ArrowUpIcon width={20} height={20} fill={colors.white} />}
-          onPress={() => navigation.navigate('SendMoney')}
-          style={{ width: 160, marginHorizontal: 2 }}
-        >
-          SEND
-        </Button>
-
-        <Button
-          variant="white"
-          icon={() => <ArrowDownIcon width={20} height={20} fill={colors.black} />}
-          onPress={() => navigation.navigate('PaymentScreen')}
-          style={{ width: 160, marginHorizontal: 2 }}
-        >
-          RECEIVE
-        </Button>
-      </View>
-      {/* Recent Transactions */}
-      <View style={styles.transactionSection}>
-        <View style={styles.transactionHeader}>
-          <Text style={styles.transactionTitle}>Transaction</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See all</Text>
-          </TouchableOpacity>
+                : '...'
+              : '******'}
+          </Text>
         </View>
+      </ImageBackground>
+    </TouchableOpacity>
 
-        <View style={styles.transactionList}>
-          {transactions.map((transaction) => (
-            <View key={transaction.id} style={styles.transactionItem}>
-              <View style={styles.transactionIconContainer}>
-                <View style={styles.transactionIcon}>
-                  <Text style={styles.iconEmoji}>{transaction.icon}</Text>
-                </View>
-              </View>
+    {/* Actions */}
+    <View style={styles.actionsContainer}>
+      <Button
+        variant="primary"
+        icon={() => <ArrowUpIcon width={20} height={20} fill={colors.white} />}
+        onPress={() => navigation.navigate('SendMoney')}
+        style={{ width: 160, marginHorizontal: 2 }}
+      >
+        SEND
+      </Button>
 
-              <View style={styles.transactionContent}>
-                <Text style={styles.transactionName}>{transaction.name}</Text>
-                <Text style={styles.transactionTime}>{transaction.time}</Text>
-              </View>
+      <Button
+        variant="white"
+        icon={() => <ArrowDownIcon width={20} height={20} fill={colors.black} />}
+        onPress={() => navigation.navigate('PaymentScreen')}
+        style={{ width: 160, marginHorizontal: 2 }}
+      >
+        RECEIVE
+      </Button>
+    </View>
 
-              <View style={styles.transactionRight}>
-                <Text
-                  style={[
-                    styles.transactionAmount,
-                    {
-                      color:
-                        transaction.type === 'received'
-                          ? colors.success
-                          : colors.text,
-                    },
-                  ]}
-                >
-                  {transaction.amount}
-                </Text>
-                <Text style={styles.transactionType}>
-                  {transaction.type === 'received' ? 'Received' : 'Transfer'}
-                </Text>
+    {/* Recent Transactions */}
+    <View style={styles.transactionSection}>
+      <View style={styles.transactionHeader}>
+        <Text style={styles.transactionTitle}>Transaction</Text>
+        <TouchableOpacity>
+          <Text style={styles.seeAll}>See all</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.transactionList}>
+        {transactions.map((transaction) => (
+          <View key={transaction.id} style={styles.transactionItem}>
+            <View style={styles.transactionIconContainer}>
+              <View style={styles.transactionIcon}>
+                <Text style={styles.iconEmoji}>{transaction.icon}</Text>
               </View>
             </View>
-          ))}
-        </View>
+
+            <View style={styles.transactionContent}>
+              <Text style={styles.transactionName}>{transaction.name}</Text>
+              <Text style={styles.transactionTime}>{transaction.time}</Text>
+            </View>
+
+            <View style={styles.transactionRight}>
+              <Text
+                style={[
+                  styles.transactionAmount,
+                  {
+                    color:
+                      transaction.type === 'received'
+                        ? colors.success
+                        : colors.text,
+                  },
+                ]}
+              >
+                {transaction.amount}
+              </Text>
+              <Text style={styles.transactionType}>
+                {transaction.type === 'received' ? 'Received' : 'Transfer'}
+              </Text>
+            </View>
+          </View>
+        ))}
       </View>
-    </ScrollView>
-  );
+    </View>
+  </View>
+);
+
 };
 export default HomeScreen;
 const styles = StyleSheet.create({
