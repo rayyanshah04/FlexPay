@@ -55,10 +55,26 @@ def signup():
 
     log_event('INFO', f'New user signed up: {name}', user_id=user_id)
 
+    payload = {
+        "user_id": user_id,
+        "type": "auth",
+        "exp": datetime.now(timezone.utc) + timedelta(days=3650) # 10 years
+    }
+    auth_token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+    # Store the auth token in the database
+    db.execute("UPDATE users SET auth_token = ? WHERE id = ?", auth_token, user_id)
+
+
     return jsonify({
-        "name": name,
-        "email": email,
-        "phone_number": phone_number,
+        "message": "Signup successful",
+        "auth_token": auth_token,
+        "user": {
+            "id": user_id,
+            "phone_number": phone_number,
+            "name": name,
+            "email": email,
+        }
     })
 
 @bp.route('/login', methods=['POST'])

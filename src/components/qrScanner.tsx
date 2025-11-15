@@ -19,6 +19,8 @@ const scanBoxSize = width * 0.65;
 const QRScanner = ({ onRead }: { onRead: (value: string | null) => void }) => {
   const [hasPermission, setHasPermission] = useState(false);
   const device = useCameraDevice('back');
+  console.log('device', device);
+  console.log('hasPermission', hasPermission);
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr'],

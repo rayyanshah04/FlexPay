@@ -13,6 +13,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../slices/authSlice';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { themeStyles, colors } from '../../theme/style';
@@ -21,11 +23,12 @@ import { TextInput } from '../../components/ui/TextInput';
 import HideIcon from '../../assets/icons/hide.svg';
 import ShowIcon from '../../assets/icons/show.svg';
 
-import { API_BASE } from '../config';
+import { API_BASE } from '../../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
 export default function SignupScreen({ navigation }: Props) {
+  const dispatch = useDispatch();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -119,8 +122,17 @@ export default function SignupScreen({ navigation }: Props) {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      Alert.alert('Success', `Account created for ${data.name}`);
-      navigation.replace('PinSetup');
+      const userData = {
+        id: data.user.id,
+        name: data.user.name,
+        phone_number: data.user.phone_number,
+        email: data.user.email,
+      };
+
+
+
+      Alert.alert('Success', `Account created for ${data.user.name}`);
+      navigation.replace('Login');
     } catch (error: any) {
       console.error('Signup Error:', error);
       Alert.alert('Signup Failed', error.message);

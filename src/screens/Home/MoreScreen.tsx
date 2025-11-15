@@ -13,7 +13,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../slices/authSlice';
+import { logoutUser } from '../../slices/authSlice';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -66,7 +66,7 @@ const MoreScreen = () => {
         text: 'Logout',
         style: 'destructive',
         onPress: () => {
-          dispatch(logout());
+          dispatch(logoutUser());
           navigation.reset({
             index: 0,
             routes: [{ name: 'Welcome' }],

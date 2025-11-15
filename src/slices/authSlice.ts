@@ -99,6 +99,13 @@ const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
+        setUser: (state, action) => {
+            state.user = action.payload.user;
+            state.authToken = action.payload.authToken;
+            state.isLoggedIn = true;
+            AsyncStorage.setItem('user', JSON.stringify(action.payload.user));
+            AsyncStorage.setItem('authToken', action.payload.authToken);
+        },
         clearSession: (state) => {
             state.sessionToken = null;
             state.isAuthenticated = false;
@@ -152,7 +159,7 @@ const authSlice = createSlice({
     },
 });
 
-export const { clearSession } = authSlice.actions;
+export const { setUser, clearSession } = authSlice.actions;
 
 export const selectUser = (state: RootState) => state.auth.user;
 export const selectAuthToken = (state: RootState) => state.auth.authToken;

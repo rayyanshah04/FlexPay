@@ -18,7 +18,7 @@ function Root() {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  if (authStatus === 'idle' || authStatus === 'loading') {
+  if (authStatus === 'loading') {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />

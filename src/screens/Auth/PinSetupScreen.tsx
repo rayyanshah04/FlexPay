@@ -54,7 +54,7 @@ export default function PinSetupScreen({ navigation }: Props) {
     try {
       await Keychain.setGenericPassword(String(user.id), finalPin, { service: 'userPin' });
       Alert.alert('PIN Set', 'Your PIN has been set successfully.');
-      navigation.replace('AppTabs');
+      navigation.replace('PinLock');
     } catch (error) {
       console.error('Keychain error:', error);
       Alert.alert('Error', 'Could not set PIN. Please try again.');

@@ -95,7 +95,7 @@ export default function QRCodeScreen() {
   if (isScanning) {
     return (
       <View style={styles.scannerContainer}>
-        <QRScanner onScan={handleScan} />
+        {/* <QRScanner onRead={handleScan} /> */}
         <TouchableOpacity
           style={[styles.backButton, { top: insets.top + 16 }]}
           onPress={() => setIsScanning(false)}
