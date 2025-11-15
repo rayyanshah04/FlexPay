@@ -18,7 +18,7 @@ import PhoneIcon from '../../assets/icons/send.svg';
 import NoteIcon from '../../assets/icons/clipboard.svg';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../slices/authSlice';
-import { API_BASE } from '../../config';
+import { API_BASE } from '../config';
 import { Button } from '../../components/ui/Button';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddingBeneficiary'>;

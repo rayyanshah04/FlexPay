@@ -1,13 +1,13 @@
 from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..database import db
-from ..utils import token_required
+from ..utils import auth_token_required, session_token_required
 from ..logger import log_event
 
 bp = Blueprint('user', __name__, url_prefix='/api')
 
 @bp.route('/balance')
-@token_required
+@session_token_required
 def get_balance(current_user):
     user_id = current_user['id']
     balance = db.execute("SELECT balance FROM users WHERE id = ?", user_id)
@@ -17,7 +17,7 @@ def get_balance(current_user):
     return jsonify({"error": "User not found"}), 404
 
 @bp.route('/profile', methods=['GET'])
-@token_required
+@session_token_required
 def get_profile(current_user):
     user_id = current_user['id']
     user = db.execute("SELECT name, phone_number, email FROM users WHERE id = ?", user_id)
@@ -30,7 +30,7 @@ def get_profile(current_user):
     return jsonify({"error": "User not found"}), 404
 
 @bp.route('/profile/update', methods=['PUT'])
-@token_required
+@session_token_required
 def update_profile(current_user):
     user_id = current_user['id']
     data = request.get_json()
@@ -64,7 +64,7 @@ def update_profile(current_user):
     return jsonify({"message": "Profile updated successfully"})
 
 @bp.route('/password/change', methods=['PUT'])
-@token_required
+@session_token_required
 def change_password(current_user):
     user_id = current_user['id']
     data = request.get_json()
@@ -97,7 +97,7 @@ def change_password(current_user):
     return jsonify({"message": "Password changed successfully"})
 
 @bp.route('/account/delete', methods=['DELETE'])
-@token_required
+@session_token_required
 def delete_account(current_user):
     user_id = current_user['id']
     
@@ -115,7 +115,7 @@ def delete_account(current_user):
         return jsonify({"error": f"Failed to delete account: {str(e)}"}), 500
 
 @bp.route('/qr-data', methods=['GET'])
-@token_required
+@session_token_required
 def get_qr_data(current_user):
     user_id = current_user['id']
     user = db.execute("SELECT name, phone_number FROM users WHERE id = ?", user_id)
@@ -133,4 +133,19 @@ def get_qr_data(current_user):
             "qr_data": qr_data
         })
     return jsonify({"error": "User not found"}), 404
+
+@bp.route('/user/device-token', methods=['POST'])
+@auth_token_required
+def update_device_token(current_user):
+    user_id = current_user['id']
+    data = request.get_json()
+    device_token = data.get('device_token')
+
+    if not device_token:
+        return jsonify({"error": "Device token is required"}), 400
+
+    db.execute("UPDATE users SET device_token = ? WHERE id = ?", device_token, user_id)
+    log_event('INFO', f'Device token updated for user_id: {user_id}', user_id=user_id)
+    return jsonify({"message": "Device token updated successfully"})
+
 

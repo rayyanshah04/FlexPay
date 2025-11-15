@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,35 +7,45 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  RNTextInput,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { themeStyles, colors } from '../../theme/style';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '../../components/ui/Button';
 import { TextInput } from '../../components/ui/TextInput';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, selectAuthStatus, selectIsLoggedIn, selectError } from '../../slices/authSlice';
+import { AppDispatch } from '../../store';
+
 // Import SVG icons
 import HideIcon from '../../assets/icons/hide.svg';
 import ShowIcon from '../../assets/icons/show.svg';
-import { API_BASE } from '../../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
-  // const dispatch = useDispatch(); // Removed useDispatch
+  const dispatch = useDispatch<AppDispatch>();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const authStatus = useSelector(selectAuthStatus);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+  const authError = useSelector(selectError);
 
-  // State for input focus
   const [phoneNumberFocused, setPhoneNumberFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
-  // State for password visibility
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigation.replace('PinLock');
+    }
+    if (authStatus === 'failed' && authError) {
+      Alert.alert('Login Failed', authError);
+    }
+  }, [isLoggedIn, authStatus, authError, navigation]);
 
   const validateInputs = () => {
     const trimmedPhoneNumber = phoneNumber.trim();
@@ -49,42 +59,9 @@ export default function LoginScreen({ navigation }: Props) {
     return true;
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     if (!validateInputs()) return;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: phoneNumber, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      // Save user details to AsyncStorage
-      await AsyncStorage.setItem(
-        'userDetails',
-        JSON.stringify({
-          id: data.user.id,
-          name: data.user.name, // <-- This is important
-          phone_number: data.user.phone_number,
-          token: data.token,
-        }),
-      );
-
-      Alert.alert('Success', data.message);
-      navigation.replace('AppTabs');
-    } catch (err: any) {
-      console.error('Login Error:', err);
-      Alert.alert('Login Failed', err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    dispatch(loginUser({ phone_number: phoneNumber, password }));
   };
 
   return (
@@ -134,8 +111,8 @@ export default function LoginScreen({ navigation }: Props) {
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
 
         <View style={themeStyles.wFull}>
-          <Button variant="primary" onPress={handleLogin} disabled={isLoading}>
-            {isLoading ? <ActivityIndicator color="#fff" /> : 'Login'}
+          <Button variant="primary" onPress={handleLogin} disabled={authStatus === 'loading'}>
+            {authStatus === 'loading' ? <ActivityIndicator color="#fff" /> : 'Login'}
           </Button>
         </View>
 

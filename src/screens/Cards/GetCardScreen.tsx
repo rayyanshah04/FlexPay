@@ -13,7 +13,7 @@ import { Button } from '../../components/ui/Button';
 import { HomeStackParamList } from '../../navigations/HomeStack';
 import { API_BASE } from '../../config'; // Import API_BASE
 import { useSelector } from 'react-redux'; // Import useSelector
-import { selectToken } from '../../slices/authSlice'; // Import selectToken
+import { selectAuthToken, selectSessionToken } from '../../slices/authSlice'; // Import selectAuthToken
 
 // Import logos
 import MastercardLogo from '../../assets/icons/mastercard.svg';
@@ -44,7 +44,7 @@ const cardTypes = [
 export default function GetCardScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const token = useSelector(selectToken); // Add this line
+  const token = useSelector(selectSessionToken); // Add this line
 
   const handleGetCard = async () => { // Make it async
     if (!selectedCard) {

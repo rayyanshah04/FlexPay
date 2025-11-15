@@ -1,5 +1,7 @@
 import PushNotification, { Importance } from 'react-native-push-notification';
 import { Platform } from 'react-native';
+import { store } from '../store';
+import { API_BASE } from '../config';
 
 class NotificationService {
   constructor() {
@@ -9,8 +11,34 @@ class NotificationService {
 
   configure = () => {
     PushNotification.configure({
-      onRegister: function (token) {
+      onRegister: async function (token) {
         console.log('TOKEN:', token);
+        const state = store.getState();
+        const userToken = state.auth.user?.token;
+
+        if (userToken) {
+          try {
+            const response = await fetch(`${API_BASE}/api/user/device-token`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`,
+              },
+              body: JSON.stringify({ device_token: token.token }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              console.error('Failed to send device token to backend:', errorData);
+            } else {
+              console.log('Device token sent to backend successfully.');
+            }
+          } catch (error) {
+            console.error('Error sending device token to backend:', error);
+          }
+        } else {
+          console.log('User not authenticated, device token not sent to backend.');
+        }
       },
 
       onNotification: function (notification) {

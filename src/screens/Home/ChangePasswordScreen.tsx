@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from '../../components/ui/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE } from '../../config';
+import { API_BASE } from '../config';
 import ShowIcon from '../../assets/icons/show.svg';
 import HideIcon from '../../assets/icons/hide.svg';
 

@@ -21,7 +21,7 @@ import { TextInput } from '../../components/ui/TextInput';
 import HideIcon from '../../assets/icons/hide.svg';
 import ShowIcon from '../../assets/icons/show.svg';
 
-import { API_BASE } from '../../config';
+import { API_BASE } from '../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
@@ -120,7 +120,7 @@ export default function SignupScreen({ navigation }: Props) {
       }
 
       Alert.alert('Success', `Account created for ${data.name}`);
-      navigation.navigate('Login');
+      navigation.replace('PinSetup');
     } catch (error: any) {
       console.error('Signup Error:', error);
       Alert.alert('Signup Failed', error.message);

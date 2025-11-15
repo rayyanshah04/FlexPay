@@ -2,70 +2,43 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { selectIsLoggedIn } from '../slices/authSlice';
 import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
 import LoginScreen from '../screens/Auth/LoginScreen';
 import SignupScreen from '../screens/Auth/SignupScreen';
-import BottomBar from './BottomBar'; // Tab navigator
-import PaymentScreen from '../screens/Payments/PaymentScreen';
-import { themeStyles } from '../theme/style';
-import { StyleSheet, Text, View } from 'react-native';
-import QRCodeScanner from '../screens/Wallet/QRCodeScreen';
-import SendMoney from '../screens/Payments/SendMoney';
+import PinLockScreen from '../screens/Auth/PinLockScreen';
+import PinSetupScreen from '../screens/Auth/PinSetupScreen';
 import ConfirmPayment from '../screens/Payments/ConfirmPayment';
 import PaymentSuccess from '../screens/Payments/PaymentSuccess';
+import AllTransactionsScreen from '../screens/Home/AllTransactionsScreen';
+import BottomBar from './BottomBar';
+import { themeStyles } from '../theme/style';
 
-export type RootStackParamList = {
-  Welcome: undefined;
-  Login: undefined;
-  Signup: undefined;
-  AppTabs: undefined;
-  Payment: undefined;
-  QRCode: undefined;
-  SendMoney: undefined;
-  ConfirmPayment: {
-    name: string;
-    iban: string;
-    amount: string;
-    phone?: string;
-  };
-  PaymentSuccess: {
-    name: string;
-    amount: string;
-    transactionId: string;
-    phone?: string;
-  };
-};
+const Stack = createNativeStackNavigator();
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const screens: {
-  [K in keyof RootStackParamList]: {
-    name: K;
-    component: React.ComponentType<any>;
-  };
-}[keyof RootStackParamList][] = [
+const screens = [
   { name: 'Welcome', component: WelcomeScreen },
   { name: 'Login', component: LoginScreen },
   { name: 'Signup', component: SignupScreen },
-  { name: 'AppTabs', component: BottomBar },
-  { name: 'Payment', component: PaymentScreen },
-  { name: 'QRCode', component: QRCodeScanner },
-  { name: 'SendMoney', component: SendMoney },
+  { name: 'PinLock', component: PinLockScreen },
+  { name: 'PinSetup', component: PinSetupScreen },
   { name: 'ConfirmPayment', component: ConfirmPayment },
   { name: 'PaymentSuccess', component: PaymentSuccess },
+  { name: 'AllTransactions', component: AllTransactionsScreen },
+  { name: 'AppTabs', component: BottomBar },
 ];
 
+// ...
+
 export default function StackNavigator() {
-  const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated,
-  );
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={isAuthenticated ? 'AppTabs' : 'Welcome'}
+        initialRouteName={isLoggedIn ? 'PinLock' : 'Welcome'}
       >
         {screens.map(screen => (
           <Stack.Screen

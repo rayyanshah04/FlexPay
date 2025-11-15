@@ -18,9 +18,10 @@ import UserIcon from '../../assets/icons/user-solid-full.svg';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
 import { API_BASE } from '../../config';
-import { selectToken } from '../../slices/authSlice';
+import { selectAuthToken, selectSessionToken } from '../../slices/authSlice';
 import { Button } from '../../components/ui/Button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SendMoney'>;
@@ -40,7 +41,7 @@ export default function SendMoney({ navigation }: Props) {
   const [displayedResults, setDisplayedResults] = useState<Beneficiary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const token = useSelector(selectToken);
+  const token = useSelector(selectSessionToken);
 
   const colorPalette = ['#4ECCA3', '#FF9F45', '#5DA3FA', '#F76C6C', '#A162F7', '#4DD0E1'];
   const getRandomColor = () => colorPalette[Math.floor(Math.random() * colorPalette.length)];
@@ -60,7 +61,7 @@ export default function SendMoney({ navigation }: Props) {
         setBeneficiaries(beneficiariesWithColor);
         setDisplayedResults(beneficiariesWithColor);
       } else {
-        console.error('Failed to fetch beneficiaries:', data.error);
+        console.error('Failed to fetch beneficiaries:', data.error || 'Unknown error', data);
       }
     } catch (error) {
       console.error('Error fetching beneficiaries:', error);

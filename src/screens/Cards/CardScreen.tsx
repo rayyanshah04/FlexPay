@@ -24,8 +24,8 @@ import AmericanExpressLogo from '../../assets/icons/american-express.svg';
 import FreezeIcon from '../../assets/icons/freeze.svg';
 import DeleteIcon from '../../assets/icons/delete.svg';
 import { useSelector } from 'react-redux';
-import { selectToken } from '../../slices/authSlice';
-import { API_BASE } from '../../config';
+import api from '../../utils/api';
+import { selectSessionToken } from '../../slices/authSlice';
 
 type CardScreenNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
@@ -38,6 +38,7 @@ interface Card {
   expiryDate: string;
   cvc: string;
   cardType: 'visa' | 'mastercard' | 'amex' | 'unknown';
+  isFrozen?: boolean;
 }
 
 export default function CardScreen() {
@@ -47,23 +48,21 @@ export default function CardScreen() {
   const [isFrozen, setIsFrozen] = useState(false);
   const [cardDetails, setCardDetails] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
-  const token = useSelector(selectToken);
+  const sessionToken = useSelector(selectSessionToken);
 
   useEffect(() => {
     const fetchCardDetails = async () => {
-      if (!token) {
+      if (!sessionToken) {
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE}/api/get_card_details`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await api('/api/get_card_details', { method: 'POST' });
         const data = await response.json();
         if (response.ok) {
           setCardDetails(data);
+          setIsFrozen(data.isFrozen || false);
         } else {
           console.error('Failed to fetch card details:', data.error);
           if (response.status === 404) {
@@ -78,17 +77,14 @@ export default function CardScreen() {
     };
 
     fetchCardDetails();
-  }, [token, navigation]);
+  }, [sessionToken, navigation]);
 
   useFocusEffect(
     React.useCallback(() => {
       const checkCardStatus = async () => {
-        if (!token) return;
+        if (!sessionToken) return;
         try {
-          const response = await fetch(`${API_BASE}/api/has_card`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await api('/api/has_card', { method: 'POST' });
           const data = await response.json();
           if (response.ok && data.has_card === false) {
             navigation.replace('NoCardScreen');
@@ -100,7 +96,7 @@ export default function CardScreen() {
       checkCardStatus();
       const intervalId = setInterval(checkCardStatus, 3000);
       return () => clearInterval(intervalId);
-    }, [token, navigation]),
+    }, [sessionToken, navigation]),
   );
 
   const getCardLogo = (cardType: Card['cardType']) => {
@@ -145,6 +141,60 @@ export default function CardScreen() {
     }
   };
 
+  const handleFreezeCard = async () => {
+    if (!sessionToken) return;
+    
+    const newFrozenState = !isFrozen;
+    
+    try {
+      const response = await api('/api/freeze_card', {
+        method: 'POST',
+        body: JSON.stringify({ isFrozen: newFrozenState }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setIsFrozen(newFrozenState);
+        Alert.alert(
+          newFrozenState ? 'Card Frozen' : 'Card Unfrozen',
+          newFrozenState
+            ? 'Your card has been frozen successfully.'
+            : 'Your card has been unfrozen successfully.',
+        );
+      } else {
+        Alert.alert('Error', data.error || 'Failed to update card status');
+      }
+    } catch (error) {
+      console.error('Error freezing/unfreezing card:', error);
+      Alert.alert('Error', 'Failed to update card status');
+    }
+  };
+
+  const handleDeleteCard = async () => {
+    if (!sessionToken) return;
+    
+    try {
+      const response = await api('/api/delete_card', { method: 'POST' });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        Alert.alert('Card Deleted', 'Your card has been deleted successfully.', [
+          {
+            text: 'OK',
+            onPress: () => navigation.replace('NoCardScreen'),
+          },
+        ]);
+      } else {
+        Alert.alert('Error', data.error || 'Failed to delete card');
+      }
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      Alert.alert('Error', 'Failed to delete card');
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -182,9 +232,8 @@ export default function CardScreen() {
           },
         ]}
       >
-        <View style={styles.backdropSquare} />
-
         <View style={styles.cardWrapper}>
+          <View style={[styles.backdropSquare, { top: CARD_HEIGHT * 0.12 }]} />
           <View style={styles.card}>
             <View style={styles.cardTop}>
               <View style={styles.cardLogoContainer}>
@@ -259,7 +308,7 @@ export default function CardScreen() {
         <View style={styles.actionContainer}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => setIsFrozen(!isFrozen)}
+            onPress={handleFreezeCard}
           >
             <FreezeIcon width={32} height={32} fill={isFrozen ? colors.primary : colors.white} />
           </TouchableOpacity>
@@ -271,7 +320,7 @@ export default function CardScreen() {
                 "Are you sure you want to delete this card?",
                 [
                   { text: "Cancel", style: "cancel" },
-                  { text: "Delete", style: "destructive", onPress: () => console.log("Delete confirmed") }
+                  { text: "Delete", style: "destructive", onPress: handleDeleteCard }
                 ]
               );
             }}
@@ -313,12 +362,11 @@ const styles = StyleSheet.create({
   },
   backdropSquare: {
     position: 'absolute',
-    width: CARD_WIDTH + 20,
-    height: CARD_HEIGHT * 0.63,
+    width: CARD_WIDTH * 1.1,
+    height: CARD_HEIGHT * 0.7,
     backgroundColor: colors.white,
     opacity: 0.20,
     borderRadius: 26,
-    top: '18%',
     zIndex: 0,
   },
   cardWrapper: {

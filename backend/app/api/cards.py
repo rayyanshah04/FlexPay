@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from faker import Faker
 from ..database import db
-from ..utils import token_required
+from ..utils import session_token_required
 from ..logger import log_event
 
 bp = Blueprint('cards', __name__, url_prefix='/api')
@@ -20,7 +20,7 @@ def generate_unique_card_number(card_type):
 
 
 @bp.route('/has_card', methods=['POST'])
-@token_required
+@session_token_required
 def has_card(current_user):
     user_id = current_user['id']
     
@@ -33,7 +33,7 @@ def has_card(current_user):
         return jsonify({"has_card": False})
 
 @bp.route('/get_card', methods=['POST'])
-@token_required
+@session_token_required
 def get_card(current_user):
     user_id = current_user['id']
     
@@ -78,12 +78,12 @@ def get_card(current_user):
     return jsonify({"message": f"Card type '{chosen_card_type}' created successfully"}), 201
 
 @bp.route('/get_card_details', methods=['POST'])
-@token_required
+@session_token_required
 def get_card_details(current_user):
     user_id = current_user['id']
     
     card_details_list = db.execute(
-        "SELECT c.card_number, c.cvc, c.expiry_date, c.card_type, u.name "
+        "SELECT c.card_number, c.cvc, c.expiry_date, c.card_type, c.is_frozen, u.name "
         "FROM cards c JOIN users u ON c.user_id = u.id "
         "WHERE c.user_id = ?",
         user_id
@@ -108,7 +108,52 @@ def get_card_details(current_user):
             "cardHolderName": card_details['name'],
             "expiryDate": card_details['expiry_date'],
             "cvc": card_details['cvc'],
-            "cardType": card_type
+            "cardType": card_type,
+            "isFrozen": bool(card_details.get('is_frozen', 0))
         })
     else:
         return jsonify({"error": "No card found for this user"}), 404
+
+@bp.route('/freeze_card', methods=['POST'])
+@session_token_required
+def freeze_card(current_user):
+    user_id = current_user['id']
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing JSON in request"}), 400
+    
+    is_frozen = data.get('isFrozen')
+    if is_frozen is None:
+        return jsonify({"error": "Missing isFrozen in request body"}), 400
+    
+    # Check if user has a card
+    card = db.execute("SELECT id FROM cards WHERE user_id = ?", user_id)
+    if not card:
+        return jsonify({"error": "No card found for this user"}), 404
+    
+    # Update card frozen status
+    db.execute("UPDATE cards SET is_frozen = ? WHERE user_id = ?", 1 if is_frozen else 0, user_id)
+    
+    status = "frozen" if is_frozen else "unfrozen"
+    log_event('INFO', f'Card {status} for user_id: {user_id}', user_id=user_id)
+    return jsonify({"message": f"Card {status} successfully", "isFrozen": is_frozen}), 200
+
+@bp.route('/delete_card', methods=['POST'])
+@session_token_required
+def delete_card(current_user):
+    user_id = current_user['id']
+    
+    # Check if user has a card
+    card = db.execute("SELECT id FROM cards WHERE user_id = ?", user_id)
+    if not card:
+        return jsonify({"error": "No card found for this user"}), 404
+    
+    # Delete the card
+    db.execute("DELETE FROM cards WHERE user_id = ?", user_id)
+    
+    # Update user has_card flag
+    db.execute("UPDATE users SET has_card = 0 WHERE id = ?", user_id)
+    
+    log_event('INFO', f'Card deleted for user_id: {user_id}', user_id=user_id)
+    return jsonify({"message": "Card deleted successfully"}), 200

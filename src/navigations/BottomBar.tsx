@@ -11,6 +11,8 @@ import ScanIcon from '../assets/icons/scan.svg';
 import HouseIcon from '../assets/icons/house.svg';
 import MenuIcon from '../assets/icons/menu.svg';
 
+import ScanQRScreen from '../screens/Payments/ScanQRScreen';
+
 const Tab = createBottomTabNavigator();
 
 // This is a dummy component. It will never be rendered.
@@ -145,7 +147,7 @@ export default function BottomBar() {
 
       <Tab.Screen
         name="Scan QR"
-        component={DummyScanScreen}
+        component={ScanQRScreen}
         options={{
           tabBarLabel: '',
         }}

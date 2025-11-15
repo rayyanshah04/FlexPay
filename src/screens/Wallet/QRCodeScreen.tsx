@@ -36,10 +36,10 @@ export default function QRCodeScreen() {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const userData = await AsyncStorage.getItem('userDetails');
-        if (userData) {
+        const userData = await AsyncStorage.getItem('user');
+        const token = await AsyncStorage.getItem('sessionToken');
+        if (userData && token) {
           const parsed = JSON.parse(userData);
-          const token = parsed.token;
 
           const response = await fetch(`${API_BASE}/api/qr-data`, {
             headers: { Authorization: `Bearer ${token}` },

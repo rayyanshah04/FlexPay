@@ -1,63 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch } from 'react-redux';
-import { login } from '../../slices/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ImageBackground,
+  ScrollView,
+  RefreshControl,
+  Platform,
+  StyleSheet,
+} from 'react-native';
+import api from '../../utils/api';
+import { selectUser } from '../../slices/authSlice';
 import NotificationService from '../../utils/NotificationService';
-// icons
+import { colors } from '../../theme/style';
+import { Button } from '../../components/ui/Button';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
-import StarIcon from '../../assets/icons/star.svg';
 import ShowIcon from '../../assets/icons/show.svg';
 import HideIcon from '../../assets/icons/hide.svg';
 import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/arrow-down.svg';
-import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  Platform,
-  RefreshControl,
-  ImageBackground,
-} from 'react-native';
-import { colors } from '../../theme/style';
-import { Button } from '../../components/ui/Button';
-import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../../navigations/HomeStack';
-import { API_BASE } from '../../config';
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  HomeStackParamList,
-  'HomeMain'
->;
+
+type HomeScreenNavigationProp = NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>;
+
 
 const HomeScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const insets = useSafeAreaInsets();
+  const user = useSelector(selectUser);
   const [userName, setUserName] = useState('User');
   const [isBalanceVisible, setIsBalanceVisible] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hasCard, setHasCard] = useState(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const previousBalance = useRef<number | null>(null);
   
   const fetchBalance = async () => {
     try {
-      const userDetails = await AsyncStorage.getItem('userDetails');
-      if (!userDetails) throw new Error('User details not found');
-      const parsed = JSON.parse(userDetails);
-      const token = parsed.token;
-      if (!token) throw new Error('Auth token not found');
-      const response = await fetch(`${API_BASE}/api/balance`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api('/api/balance');
       if (!response.ok) throw new Error('Failed to fetch balance');
       const data = await response.json();
       
-      // Check if balance increased (money received)
       if (previousBalance.current !== null && data.balance > previousBalance.current) {
         const difference = data.balance - previousBalance.current;
         NotificationService.transactionNotification('received', difference.toFixed(2), 'Someone');
@@ -69,17 +58,10 @@ const HomeScreen = () => {
       console.error(err);
     }
   };
+
   const fetchHasCard = async () => {
     try {
-      const userDetails = await AsyncStorage.getItem('userDetails');
-      if (!userDetails) throw new Error('User details not found');
-      const parsed = JSON.parse(userDetails);
-      const token = parsed.token;
-      if (!token) throw new Error('Auth token not found');
-      const response = await fetch(`${API_BASE}/api/has_card`, {
-        method: 'POST', // Changed to POST
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api('/api/has_card', { method: 'POST' });
       if (!response.ok) throw new Error('Failed to fetch has_card');
       const data = await response.json();
       setHasCard(data.has_card);
@@ -87,63 +69,36 @@ const HomeScreen = () => {
       console.error(err);
     }
   };
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await api('/api/transactions');
+      if (!response.ok) throw new Error('Failed to fetch transactions');
+      const data = await response.json();
+      setTransactions(data.transactions);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const onRefresh = () => {
     setRefreshing(true);
-    fetchBalance().finally(() => setRefreshing(false));
+    Promise.all([fetchBalance(), fetchHasCard(), fetchTransactions()]).finally(() => setRefreshing(false));
   };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      const userData = await AsyncStorage.getItem('userDetails');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUserName(parsed.name || 'User');
-        dispatch(login(parsed));
-      }
-    };
-    fetchUser();
-  }, [dispatch]);
+    if (user) {
+      setUserName(user.name || 'User');
+    }
+  }, [user]);
 
   useFocusEffect(
     React.useCallback(() => {
       fetchBalance();
       fetchHasCard();
+      fetchTransactions();
     }, [])
   );
-
-  const transactions = [
-    {
-      id: 1,
-      name: 'Rayyan',
-      time: 'Today, 15:10',
-      amount: '-$149.00',
-      type: 'transfer',
-      icon: '🎯',
-    },
-    {
-      id: 2,
-      name: 'Trent Bolt',
-      time: 'Yesterday, 09:45',
-      amount: '+$74.00',
-      type: 'received',
-      icon: '⚡',
-    },
-    {
-      id: 3,
-      name: 'Apple Services',
-      time: 'Yesterday, 05:10',
-      amount: '-$12.00',
-      type: 'transfer',
-      icon: '🍎',
-    },
-    {
-      id: 4,
-      name: 'Ryne LTD',
-      time: '2 Aug, 09:11',
-      amount: '-$18.00',
-      type: 'transfer',
-      icon: '🚀',
-    },
-  ];
 
  return (
   <ScrollView
@@ -245,45 +200,49 @@ const HomeScreen = () => {
     <View style={styles.transactionSection}>
       <View style={styles.transactionHeader}>
         <Text style={styles.transactionTitle}>Transaction</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('AllTransactions', { transactions, userId: user?.id })}>
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.transactionList}>
-        {transactions.map((transaction) => (
-          <View key={transaction.id} style={styles.transactionItem}>
-            <View style={styles.transactionIconContainer}>
-              <View style={styles.transactionIcon}>
-                <Text style={styles.iconEmoji}>{transaction.icon}</Text>
+        {transactions.slice(0, 4).map((transaction) => {
+          const isReceived = transaction.receiver_id === user?.id;
+          const name = isReceived ? transaction.sender_name : transaction.receiver_name;
+          const amount = isReceived ? `+Rs. ${transaction.amount.toFixed(2)}` : `-Rs. ${transaction.amount.toFixed(2)}`;
+          const time = new Date(transaction.timestamp).toLocaleString();
+
+          return (
+            <View key={transaction.id} style={styles.transactionItem}>
+              <View style={styles.transactionIconContainer}>
+                <View style={styles.transactionIcon}>
+                  <Text style={styles.iconText}>{name.charAt(0)}</Text>
+                </View>
+              </View>
+
+              <View style={styles.transactionContent}>
+                <Text style={styles.transactionName}>{name}</Text>
+                <Text style={styles.transactionTime}>{time}</Text>
+              </View>
+
+              <View style={styles.transactionRight}>
+                <Text
+                  style={[
+                    styles.transactionAmount,
+                    {
+                      color: isReceived ? colors.success : colors.text,
+                    },
+                  ]}
+                >
+                  {amount}
+                </Text>
+                <Text style={styles.transactionType}>
+                  {isReceived ? 'Received' : 'Transfer'}
+                </Text>
               </View>
             </View>
-
-            <View style={styles.transactionContent}>
-              <Text style={styles.transactionName}>{transaction.name}</Text>
-              <Text style={styles.transactionTime}>{transaction.time}</Text>
-            </View>
-
-            <View style={styles.transactionRight}>
-              <Text
-                style={[
-                  styles.transactionAmount,
-                  {
-                    color:
-                      transaction.type === 'received'
-                        ? colors.success
-                        : colors.text,
-                  },
-                ]}
-              >
-                {transaction.amount}
-              </Text>
-              <Text style={styles.transactionType}>
-                {transaction.type === 'received' ? 'Received' : 'Transfer'}
-              </Text>
-            </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
     </View>
   </ScrollView>
@@ -420,8 +379,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  iconEmoji: {
-    fontSize: 24,
+  iconText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.white,
   },
   transactionContent: {
     flex: 1,

@@ -4,6 +4,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from ..database import db
 from ..config import JWT_SECRET
+from ..utils import auth_token_required
 from ..logger import log_event
 
 bp = Blueprint('auth', __name__, url_prefix='/api')
@@ -89,20 +90,41 @@ def login():
 
     payload = {
         "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=24)
+        "type": "auth",
+        "exp": datetime.now(timezone.utc) + timedelta(days=3650) # 10 years
     }
-    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    auth_token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+    # Store the auth token in the database
+    db.execute("UPDATE users SET auth_token = ? WHERE id = ?", auth_token, user_id)
 
     log_event('INFO', f'User logged in: {existing_user[0]["name"]}', user_id=user_id)
 
     return jsonify({
         "message": "Login successful",
-        "token": token,
+        "auth_token": auth_token,
         "user": {
             "id": user_id,
             "phone_number": existing_user[0]["phone_number"],
             "name": existing_user[0]["name"],
             "email": existing_user[0]["email"],
-            "token_expiry": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
         }
+    })
+
+@bp.route('/session/refresh', methods=['POST'])
+@auth_token_required
+def refresh_session(current_user):
+    # The token_required decorator has already validated the auth_token
+    # and provided the current_user payload.
+    
+    session_payload = {
+        "user_id": current_user['id'],
+        "type": "session",
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=5)
+    }
+    session_token = jwt.encode(session_payload, JWT_SECRET, algorithm="HS256")
+
+    return jsonify({
+        "session_token": session_token,
+        "expires_in": 300 # 5 minutes in seconds
     })

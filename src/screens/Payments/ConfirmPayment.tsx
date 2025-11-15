@@ -18,15 +18,13 @@ import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
-import { API_BASE } from '../../config';
-import { selectToken } from '../../slices/authSlice';
+import api from '../../utils/api';
 import NotificationService from '../../utils/NotificationService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConfirmPayment'>;
 
 const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
-  const token = useSelector(selectToken);
   const {
     name = 'Muhammad Hussain',
     iban = 'PK12ABC1234567890',
@@ -66,26 +64,27 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
       return;
     }
 
-    if (!token) {
-      Alert.alert('Error', 'Authentication required');
-      return;
-    }
+    console.log('DEBUG: Sending transaction with phone:', phoneNumber);
 
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${API_BASE}/api/transactions/send`, {
+      const response = await api('/api/transactions/send', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
         body: JSON.stringify({
           receiver_phone: phoneNumber,
           amount: parseFloat(amount.replace(/,/g, '')),
           note: note,
         }),
       });
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response received:', response.status);
+        Alert.alert('Error', 'Server error. Please try again later.');
+        return;
+      }
 
       const data = await response.json();
 

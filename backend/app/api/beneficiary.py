@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
 from ..database import db
-from ..utils import token_required
+from ..utils import session_token_required
 from ..logger import log_event
 
 bp = Blueprint('beneficiary', __name__, url_prefix='/api')
 
 @bp.route('/add_beneficiary', methods=['POST'])
-@token_required
+@session_token_required
 def add_beneficiary(current_user):
     data = request.get_json()
     phone_number = data.get('phone_number') or data.get('iban_or_number')
@@ -48,7 +48,7 @@ def add_beneficiary(current_user):
     })
 
 @bp.route('/beneficiaries', methods=['GET'])
-@token_required
+@session_token_required
 def get_beneficiaries(current_user):
     user_id = current_user['id']
     
@@ -57,7 +57,7 @@ def get_beneficiaries(current_user):
     return jsonify({"beneficiaries": beneficiaries_data})
 
 @bp.route('/search_user')
-@token_required
+@session_token_required
 def search_user(current_user):
     query = request.args.get('q', '')
     user_id = current_user['id']

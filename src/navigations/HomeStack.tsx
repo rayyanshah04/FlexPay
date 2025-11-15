@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { BackHandler as RNBackHandler } from 'react-native';
 import HomeScreen from '../screens/Home/HomeScreen';
 import CardScreen from '../screens/Cards/CardScreen';
 import NoCardScreen from '../screens/Cards/NoCardScreen';
@@ -15,6 +17,7 @@ import AddingBeneficiary from '../screens/Payments/AddingBeneficiary';
 import UserSettings from '../screens/Home/UserSettings';
 import ChangePasswordScreen from '../screens/Home/ChangePasswordScreen';
 import TestNotificationScreen from '../screens/Home/TestNotificationScreen';
+import AllTransactionsScreen from '../screens/Home/AllTransactionsScreen';
 import { colors } from '../theme/style';
 // Import other home-related screens
 
@@ -32,6 +35,7 @@ export type HomeStackParamList = {
   UserSettings: undefined; // Added
   ChangePassword: undefined; // Added
   TestNotification: undefined; // Added for testing
+  AllTransactions: { transactions: any[], userId: number };
 };
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -52,6 +56,24 @@ const defaultHeaderOptions = {
 };
 
 export default function HomeStack() {
+  const navigation = useNavigation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = RNBackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -154,6 +176,14 @@ export default function HomeStack() {
         component={TestNotificationScreen}
         options={{
           title: 'Test Notifications',
+          ...defaultHeaderOptions,
+        }}
+      />
+      <Stack.Screen
+        name="AllTransactions"
+        component={AllTransactionsScreen}
+        options={{
+          title: 'All Transactions',
           ...defaultHeaderOptions,
         }}
       />

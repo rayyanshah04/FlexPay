@@ -9,14 +9,15 @@ import {
 } from 'react-native';
 import { colors } from '../../theme/style';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../slices/authSlice';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import ArrowUpIcon from '../../assets/icons/arrow-up.svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE } from '../../config';
 
 type MoreScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -30,17 +31,33 @@ const MoreScreen = () => {
   const [userName, setUserName] = useState('User');
   const [userEmail, setUserEmail] = useState('user@example.com');
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const userData = await AsyncStorage.getItem('userDetails');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUserName(parsed.name || 'User');
-        setUserEmail(parsed.email || 'user@example.com');
+  const fetchUserProfile = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      const token = await AsyncStorage.getItem('sessionToken');
+      if (!userString || !token) return;
+      
+      const user = JSON.parse(userString);
+
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserName(data.name || 'User');
+        setUserEmail(data.email || 'user@example.com');
       }
-    };
-    fetchUserDetails();
-  }, []);
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserProfile();
+    }, [])
+  );
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [

@@ -33,11 +33,11 @@ export default function UserSettings() {
 
   const fetchUserProfile = async () => {
     try {
-      const userDetails = await AsyncStorage.getItem('userDetails');
-      if (!userDetails) return;
+      const userString = await AsyncStorage.getItem('user');
+      const token = await AsyncStorage.getItem('sessionToken');
+      if (!userString || !token) return;
       
-      const parsed = JSON.parse(userDetails);
-      const token = parsed.token;
+      const user = JSON.parse(userString);
 
       const response = await fetch(`${API_BASE}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` },
