@@ -1,0 +1,1 @@
+I suggest creating the Python script at `backend/app/api/qr_scanner.py`.

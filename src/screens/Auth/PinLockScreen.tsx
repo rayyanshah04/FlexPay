@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground, Dimensions, AppState } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
-import Icon from 'react-native-vector-icons/Ionicons';
 import * as Keychain from 'react-native-keychain';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, refreshSession, selectIsAuthenticated, selectAuthToken, clearSession } from '../../slices/authSlice';
+import { selectUser, refreshSession, selectAuthToken, clearSession, selectIsAuthenticated } from '../../slices/authSlice';
 import BackspaceIcon from '../../assets/icons/backspace.svg';
 import { AppDispatch } from '../../store';
 import { API_BASE } from '../../config';
@@ -17,40 +16,44 @@ const PIN_LENGTH = 4;
 
 export default function PinLockScreen({ navigation }: Props) {
   const [pin, setPin] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [hasPIN, setHasPIN] = useState(false);
   const user = useSelector(selectUser);
   const authToken = useSelector(selectAuthToken);
-  const dispatch = useDispatch<AppDispatch>();
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const appState = useRef(AppState.currentState);
+  const dispatch = useDispatch<AppDispatch>();
   const inactivityTimeout = useRef<NodeJS.Timeout | null>(null);
-  const INACTIVITY_TIME = 60000; // 1 minute
+  const INACTIVITY_TIME = 300000; // 5 minutes
 
   const resetInactivityTimer = () => {
     if (inactivityTimeout.current) {
       clearTimeout(inactivityTimeout.current);
     }
     inactivityTimeout.current = setTimeout(() => {
-      dispatch(clearSession());
+      // dispatch(clearSession()); // Don't logout, just reset PIN
       setPin('');
     }, INACTIVITY_TIME);
   };
 
+  // First check: if no authToken or user.id, go back to Welcome
   useEffect(() => {
-    if (isAuthenticated) {
-      navigation.replace('AppTabs');
-    }
-  }, [isAuthenticated, navigation]);
+    console.log('=== PinLockScreen ===');
+    console.log('authToken:', !!authToken);
+    console.log('user.id:', user?.id);
 
-  useEffect(() => {
+    if (!authToken || !user?.id) {
+      console.log('❌ No authToken or user.id - redirecting to Welcome');
+      navigation.replace('Welcome');
+      return;
+    }
+
+    // Check if PIN is set for this user
     const checkPinStatus = async () => {
-      if (!user?.id || !authToken) {
-        navigation.replace('Login');
-        return;
-      }
       try {
+        console.log('Checking if PIN is set...');
         const response = await fetch(`${API_BASE}/api/login-pin/check`, {
           method: 'GET',
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${authToken}`,
           },
         });
@@ -58,31 +61,46 @@ export default function PinLockScreen({ navigation }: Props) {
         const data = await response.json();
 
         if (!response.ok) {
-          navigation.replace('Login');
+          console.log('API error checking PIN');
+          setHasPIN(false);
+          setLoading(false);
           return;
         }
 
+        console.log('PIN check result:', data);
         if (!data.has_pin) {
+          console.log('✓ No PIN set - going to PinSetup');
           navigation.replace('PinSetup');
-          return;
+        } else {
+          console.log('✓ PIN is set - show lock screen');
+          setHasPIN(true);
+          setLoading(false);
+          resetInactivityTimer();
         }
-
-        // PIN is set, start inactivity timer
-        resetInactivityTimer();
       } catch (error) {
-        console.error('PIN status check error:', error);
-        Alert.alert('Error', 'Could not check PIN status. Please try again.');
-        navigation.replace('Login');
+        console.error('Error checking PIN:', error);
+        setLoading(false);
       }
     };
+
     checkPinStatus();
+
     return () => {
       if (inactivityTimeout.current) {
         clearTimeout(inactivityTimeout.current);
       }
     };
-  }, [user, authToken, navigation]);
+  }, [authToken, user?.id, navigation]);
 
+  // Navigate to AppTabs when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('✓ Authenticated - navigating to AppTabs');
+      navigation.replace('AppTabs');
+    }
+  }, [isAuthenticated, navigation]);
+
+  // When PIN is 4 digits, verify it
   useEffect(() => {
     if (pin.length === PIN_LENGTH) {
       handleUnlock();
@@ -102,45 +120,107 @@ export default function PinLockScreen({ navigation }: Props) {
   };
 
   const handleUnlock = async () => {
-    if (!user?.id || !authToken) {
-      Alert.alert('Error', 'User not logged in.');
-      return;
-    }
-
     try {
       const credentials = await Keychain.getGenericPassword({ service: 'userPin' });
-      if (credentials && credentials.password === pin) {
+
+      console.log('=== PIN Verification ===');
+      console.log('Stored user_id:', credentials?.username);
+      console.log('Current user_id:', user?.id);
+      console.log('PIN entered:', pin);
+
+      if (!credentials) {
+        console.log('❌ No PIN stored in Keychain, trying backend verification...');
+
+        try {
+          const response = await fetch(`${API_BASE}/api/login-pin/verify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ pin }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.valid) {
+            console.log('✓ Backend verification successful! Syncing to Keychain...');
+            // Sync to Keychain
+            await Keychain.setGenericPassword(String(user?.id), pin, { service: 'userPin' });
+
+            resetInactivityTimer();
+            dispatch(refreshSession());
+            // navigation.replace('AppTabs'); // Removed explicit navigation
+            return;
+          } else {
+            console.log('❌ Backend verification failed');
+            Alert.alert('Invalid PIN', 'Please try again.');
+            setPin('');
+            resetInactivityTimer();
+            return;
+          }
+        } catch (error) {
+          console.error('Backend verification error:', error);
+          Alert.alert(
+            'PIN Not Found',
+            'Your PIN was not found on this device and could not be verified online. Please log in again.',
+            [
+              { text: 'Log In Again', onPress: () => dispatch(clearSession()) }
+            ]
+          );
+          setPin('');
+          resetInactivityTimer();
+          return;
+        }
+      }
+
+      if (credentials.username !== String(user?.id)) {
+        console.log('❌ PIN user_id mismatch - stored:', credentials.username, 'current:', String(user?.id));
+        Alert.alert(
+          'Session Issue',
+          'Your session appears to be corrupted. Please logout and login again.',
+          [
+            { text: 'OK', onPress: () => dispatch(clearSession()) },
+          ]
+        );
+        setPin('');
+        return;
+      }
+
+      if (credentials.password === pin) {
+        console.log('✓ PIN Correct!');
         resetInactivityTimer();
         dispatch(refreshSession());
+        // navigation.replace('AppTabs'); // Removed explicit navigation
       } else {
-        Alert.alert('Invalid PIN', 'The PIN you entered is incorrect.');
+        console.log('❌ PIN Incorrect');
+        Alert.alert('Invalid PIN', 'Please try again.');
         setPin('');
         resetInactivityTimer();
       }
     } catch (error) {
-      console.error('Keychain unlock error:', error);
-      Alert.alert('Error', 'Could not verify PIN. Please try again.');
+      console.error('PIN verification error:', error);
+      Alert.alert('Error', 'Could not verify PIN.');
       setPin('');
       resetInactivityTimer();
     }
   };
 
-  const handleBiometricAuth = async () => {
-    if (!user?.id) return;
-
-    try {
-      const credentials = await Keychain.getGenericPassword({
-        service: 'userPin',
-        authenticationPrompt: { title: 'Authenticate to unlock Flexpay' },
-      });
-
-      if (credentials) {
-        resetInactivityTimer();
-        dispatch(refreshSession());
-      }
-    } catch (error: any) {
-      console.error('Biometric auth error:', error);
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      'Switch Account?',
+      'You will be logged out and can login with another account.',
+      [
+        { text: 'Cancel', onPress: () => { } },
+        {
+          text: 'Logout',
+          onPress: () => {
+            dispatch(clearSession());
+            setPin('');
+          },
+        },
+      ]
+    );
   };
 
   const renderPinDots = () => {
@@ -177,6 +257,22 @@ export default function PinLockScreen({ navigation }: Props) {
     });
   };
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!hasPIN) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>PIN not setup</Text>
+      </View>
+    );
+  }
+
   return (
     <ImageBackground
       source={require('../../assets/bg.png')}
@@ -187,12 +283,12 @@ export default function PinLockScreen({ navigation }: Props) {
         <View style={styles.backdropSquare} />
         <View style={styles.contentContainer}>
           <Text style={styles.title}>Enter PIN</Text>
-          <Text style={styles.subtitle}>Enter your PIN to unlock</Text>
+          <Text style={styles.subtitle}>Enter your PIN to continue</Text>
           <View style={styles.dotsContainer}>{renderPinDots()}</View>
           <View style={styles.keypadContainer}>{renderKeypad()}</View>
-          <TouchableOpacity onPress={handleBiometricAuth} style={styles.biometricButton}>
-            <Icon name="finger-print-outline" size={40} color={colors.primary} />
-            <Text style={styles.biometricText}>Use Biometrics</Text>
+
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>Switch Account</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -263,13 +359,23 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: colors.text,
   },
-  biometricButton: {
+  logoutButton: {
     marginTop: 40,
-    alignItems: 'center',
+    padding: 12,
   },
-  biometricText: {
+  logoutText: {
     color: colors.primary,
-    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  loadingText: {
+    color: colors.text,
+    fontSize: 16,
+  },
+  errorText: {
+    color: colors.text,
     fontSize: 16,
   },
 });

@@ -5,11 +5,12 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config['SECRET_KEY'] = JWT_SECRET
 
-    from .api import auth, user, beneficiary, cards, transactions
+    from .api import auth, user, beneficiary, cards, transactions, qr
     app.register_blueprint(auth.bp)
     app.register_blueprint(user.bp)
     app.register_blueprint(beneficiary.bp)
     app.register_blueprint(cards.bp)
     app.register_blueprint(transactions.bp)
+    app.register_blueprint(qr.bp)
 
     return app

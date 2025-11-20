@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { selectAuthToken, selectSessionToken } from '../slices/authSlice';
 import HomeStack from './HomeStack';
 import MoreScreen from '../screens/Home/MoreScreen';
 import { colors } from '../theme/style';
@@ -19,6 +21,9 @@ const Tab = createBottomTabNavigator();
 const DummyScanScreen = () => null;
 
 export default function BottomBar() {
+  const authToken = useSelector(selectAuthToken);
+  const sessionToken = useSelector(selectSessionToken);
+
   const CustomTabBar = ({ state, navigation }: any) => {
     const currentTabRoute = state.routes[state.index];
     const focusedRouteName = getFocusedRouteNameFromRoute(currentTabRoute);
@@ -120,6 +125,15 @@ export default function BottomBar() {
       </View>
     );
   };
+
+  // Verify both tokens exist before rendering
+  if (!authToken || !sessionToken) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: colors.text }}>Auth session expired. Please login again.</Text>
+      </View>
+    );
+  }
 
   return (
     <Tab.Navigator

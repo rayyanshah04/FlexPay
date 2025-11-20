@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectIsLoggedIn } from '../slices/authSlice';
+import { selectIsLoggedIn, selectIsAuthenticated } from '../slices/authSlice';
 import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
 import LoginScreen from '../screens/Auth/LoginScreen';
 import SignupScreen from '../screens/Auth/SignupScreen';
@@ -34,31 +34,38 @@ const screens = [
 
 export default function StackNavigator() {
   const isLoggedIn = useSelector(selectIsLoggedIn);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   return (
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName={isLoggedIn ? 'PinLock' : 'Welcome'}
       >
-        {screens.map(screen => (
-          <Stack.Screen
-            key={screen.name}
-            name={screen.name}
-            component={screen.component}
-            options={{
-              headerShown: false,
-              // headerShown: screen.name === 'Payment',
-              // headerStyle: themeStyles.bgPrimary,
-              // headerTitleAlign: 'center',
-              // headerShadowVisible: false,
-              // headerTintColor: '#fff',
-              // headerTitle: paymentHeader,
-              ...(screen.name === 'AppTabs' && {
-                contentStyle: { backgroundColor: 'transparent' },
-              }),
-            }}
-          />
-        ))}
+        {screens.map(screen => {
+          // Only show AppTabs if both tokens are valid (logged in + authenticated)
+          if (screen.name === 'AppTabs' && (!isLoggedIn || !isAuthenticated)) {
+            return null;
+          }
+          return (
+            <Stack.Screen
+              key={screen.name}
+              name={screen.name}
+              component={screen.component}
+              options={{
+                headerShown: false,
+                // headerShown: screen.name === 'Payment',
+                // headerStyle: themeStyles.bgPrimary,
+                // headerTitleAlign: 'center',
+                // headerShadowVisible: false,
+                // headerTintColor: '#fff',
+                // headerTitle: paymentHeader,
+                ...(screen.name === 'AppTabs' && {
+                  contentStyle: { backgroundColor: 'transparent' },
+                }),
+              }}
+            />
+          );
+        })}
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -22,17 +22,32 @@ export default function PinSetupScreen({ navigation }: Props) {
   const authToken = useSelector(selectAuthToken);
   const dispatch = useDispatch<AppDispatch>();
 
+  // Check if we have valid authToken and user.id
+  useEffect(() => {
+    console.log('=== PinSetupScreen ===');
+    console.log('authToken:', !!authToken);
+    console.log('user.id:', user?.id);
+
+    if (!authToken || !user?.id) {
+      console.log('❌ No authToken or user.id - redirecting to Welcome');
+      navigation.replace('Welcome');
+    }
+  }, [authToken, user?.id, navigation]);
+
   useEffect(() => {
     if (pin.length === PIN_LENGTH && !isConfirming) {
       // First PIN entered, store it and switch to confirming mode
+      console.log('First PIN entered, asking for confirmation');
       setFirstPin(pin);
       setIsConfirming(true);
       setPin(''); // Clear for second entry
     } else if (pin.length === PIN_LENGTH && isConfirming) {
       // Second PIN entered, compare and submit
       if (firstPin === pin) {
+        console.log('✓ PINs match, saving...');
         handleSetPin(pin);
       } else {
+        console.log('❌ PINs do not match');
         Alert.alert('PINs do not match', 'Please try again.');
         setPin('');
         setFirstPin('');
@@ -52,12 +67,14 @@ export default function PinSetupScreen({ navigation }: Props) {
   };
 
   const handleSetPin = async (finalPin: string) => {
-    if (!user?.id) {
-      Alert.alert('Error', 'User not logged in.');
+    if (!user?.id || !authToken) {
+      Alert.alert('Error', 'Not logged in. Please login first.');
+      navigation.replace('Login');
       return;
     }
 
     try {
+      console.log('Saving PIN to backend...');
       const response = await fetch(`${API_BASE}/api/login-pin/set`, {
         method: 'POST',
         headers: { 
@@ -70,19 +87,28 @@ export default function PinSetupScreen({ navigation }: Props) {
       const data = await response.json();
 
       if (!response.ok) {
-        Alert.alert('Error', data.error || 'Could not set PIN. Please try again.');
+        console.log('❌ Backend error:', data.error);
+        Alert.alert('Error', data.error || 'Could not set PIN.');
         setPin('');
         setFirstPin('');
         setIsConfirming(false);
         return;
       }
 
-      await Keychain.setGenericPassword(String(user.id), finalPin, { service: 'userPin' });
-      Alert.alert('PIN Set', 'Your PIN has been set successfully.');
+      console.log('✓ PIN saved to backend');
+      console.log('Saving PIN to Keychain...');
       
-      // Refresh session to get a valid session token for API calls
+      // Save to Keychain with user_id as username
+      await Keychain.setGenericPassword(String(user.id), finalPin, { service: 'userPin' });
+      
+      console.log('✓ PIN saved to Keychain');
+      Alert.alert('Success!', 'Your PIN has been set.');
+      
+      // Refresh session to get valid session token
+      console.log('Refreshing session...');
       dispatch(refreshSession());
       
+      // Go to app
       navigation.replace('AppTabs');
     } catch (error) {
       console.error('PIN setup error:', error);
@@ -138,7 +164,7 @@ export default function PinSetupScreen({ navigation }: Props) {
         <View style={styles.contentContainer}>
           <Text style={styles.title}>{isConfirming ? 'Confirm PIN' : 'Create a PIN'}</Text>
           <Text style={styles.subtitle}>
-            {isConfirming ? 'Enter your new PIN again.' : 'Create a 4-digit PIN to secure your account.'}
+            {isConfirming ? 'Enter your PIN again.' : 'Create a 4-digit PIN to secure your account.'}
           </Text>
           <View style={styles.dotsContainer}>{renderPinDots()}</View>
           <View style={styles.keypadContainer}>{renderKeypad()}</View>

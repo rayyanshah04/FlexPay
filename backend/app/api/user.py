@@ -174,4 +174,29 @@ def set_login_pin(current_user):
     log_event('INFO', f'Login PIN set for user_id: {user_id}', user_id=user_id)
     return jsonify({"message": "Login PIN set successfully"})
 
+@bp.route('/login-pin/verify', methods=['POST'])
+@auth_token_required
+def verify_login_pin(current_user):
+    user_id = current_user['id']
+    data = request.get_json()
+    pin = data.get('pin')
+    
+    if not pin:
+        return jsonify({"error": "PIN is required"}), 400
+        
+    user = db.execute("SELECT login_pin FROM users WHERE id = ?", user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    stored_pin = user[0]['login_pin']
+    
+    if not stored_pin:
+        return jsonify({"error": "PIN not set"}), 400
+        
+    if stored_pin == pin:
+        return jsonify({"valid": True})
+    else:
+        return jsonify({"valid": False}), 401
+
 

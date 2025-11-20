@@ -17,19 +17,24 @@ import UserIcon from '../../assets/icons/user-solid-full.svg';
 import PhoneIcon from '../../assets/icons/send.svg';
 import NoteIcon from '../../assets/icons/clipboard.svg';
 import { useSelector } from 'react-redux';
-import { selectToken } from '../../slices/authSlice';
-import { API_BASE } from '../config';
+import { selectSessionToken } from '../../slices/authSlice';
+import { API_BASE } from '../../config';
 import { Button } from '../../components/ui/Button';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddingBeneficiary'>;
 
-export default function AddingBeneficiary({ navigation }: Props) {
+export default function AddingBeneficiary({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+
+  // Get prefilled data from route params (from QR scan)
+  const prefilledName = route?.params?.prefilledName || '';
+  const prefilledPhone = route?.params?.prefilledPhone || '';
+
+  const [name, setName] = useState(prefilledName);
+  const [phone, setPhone] = useState(prefilledPhone);
   const [note, setNote] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const token = useSelector(selectToken);
+  const token = useSelector(selectSessionToken);
 
   const phoneRegex = /^03\d{9}$/;
   const ibanRegex = /^PK04FLXP0000003\d{9}$/;
@@ -80,7 +85,7 @@ export default function AddingBeneficiary({ navigation }: Props) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'An unknown error occurred.');
+        throw new Error(result.error || result.message || 'An unknown error occurred.');
       }
 
       Alert.alert('Success', result.message || 'Beneficiary added successfully!');

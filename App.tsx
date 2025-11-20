@@ -6,7 +6,8 @@ import { PaperProvider } from 'react-native-paper';
 import { theme } from './src/theme/style';
 import NotificationService from './src/utils/NotificationService';
 import { checkAuth, selectAuthStatus } from './src/slices/authSlice';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Platform, PermissionsAndroid } from 'react-native';
+import { Camera } from 'react-native-vision-camera';
 
 function Root() {
   const dispatch = useDispatch<AppDispatch>();
@@ -16,6 +17,23 @@ function Root() {
     // Initialize notification service
     NotificationService;
     dispatch(checkAuth());
+
+    // Request permissions on app launch
+    const requestPermissions = async () => {
+      // Camera Permission
+      const cameraPermission = await Camera.requestCameraPermission();
+      console.log('Camera Permission:', cameraPermission);
+
+      // Notification Permission (Android 13+)
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+        console.log('Notification Permission:', granted);
+      }
+    };
+
+    requestPermissions();
   }, [dispatch]);
 
   if (authStatus === 'loading') {

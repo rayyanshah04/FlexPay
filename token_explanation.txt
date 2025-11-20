@@ -1,0 +1,18 @@
+Of course. Here is the difference between the `device_token` and `auth_token` in your database:
+
+### `auth_token`
+
+*   **Purpose:** This is an **authentication token**. It's used to prove the user's identity when they make requests to your backend API.
+*   **How it's used:** When a user logs in or signs up, the backend generates this token and sends it to the app. The app then includes this token in the headers of subsequent API calls to authenticate the user. The `@auth_token_required` decorator in your Python code checks for this token.
+*   **Lifespan:** It's a long-lived token (currently set to 10 years in your code), which means it doesn't expire quickly.
+
+### `device_token`
+
+*   **Purpose:** This is a **push notification token**. It's a unique identifier for a specific device (e.g., an iPhone or an Android phone).
+*   **How it's used:** Your app gets this token from the operating system (iOS or Android) and sends it to your backend. Your backend then uses this token to send push notifications (like transaction alerts) to that specific device.
+*   **Lifespan:** This token can change, for example, if the user reinstalls the app. That's why the app sends it to the backend periodically.
+
+**In summary:**
+
+*   `auth_token` is for **who** the user is.
+*   `device_token` is for **where** to send notifications.

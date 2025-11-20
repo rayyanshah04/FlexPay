@@ -12,47 +12,101 @@ import {
   useCodeScanner,
 } from 'react-native-vision-camera';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useIsFocused } from '@react-navigation/native';
+import { AppState, AppStateStatus } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const scanBoxSize = width * 0.65;
 
 const QRScanner = ({ onRead }: { onRead: (value: string | null) => void }) => {
-  const [hasPermission, setHasPermission] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const device = useCameraDevice('back');
-  console.log('device', device);
-  console.log('hasPermission', hasPermission);
+  const isFocused = useIsFocused();
+  const [appState, setAppState] = useState(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      setAppState(nextAppState);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  console.log('=== QRScanner Debug ===');
+  console.log('device:', device);
+  console.log('hasPermission:', hasPermission);
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr'],
     onCodeScanned: codes => {
-      console.log(codes, 'CODES');
+      console.log('✓ QR Codes scanned:', codes);
       if (codes.length > 0 && codes[0].value) {
+        console.log('✓ QR Value:', codes[0].value);
         onRead(codes[0].value);
       }
     },
   });
 
   useEffect(() => {
+    let isMounted = true;
+
     const requestCameraPermission = async () => {
-      const permission = await Camera.requestCameraPermission();
-      setHasPermission(permission === 'granted');
+      try {
+        console.log('Requesting camera permission...');
+        const permission = await Camera.requestCameraPermission();
+        console.log('✓ Camera permission result:', permission);
+        if (isMounted) {
+          setHasPermission(permission === 'granted');
+        }
+      } catch (error) {
+        console.error('✗ Error requesting camera permission:', error);
+        if (isMounted) {
+          setHasPermission(false);
+        }
+      }
     };
 
     requestCameraPermission();
 
     // Auto-close scanner after 15 seconds
     const timeout = setTimeout(() => {
+      console.log('⏱ Auto-closing scanner after 15 seconds');
       onRead(null);
     }, 15000);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      isMounted = false;
+      clearTimeout(timeout);
+    };
   }, [onRead]);
 
-  if (device == null || !hasPermission) {
+  console.log('Current state - hasPermission:', hasPermission, 'device:', device ? 'READY' : 'LOADING');
+
+  if (hasPermission === null) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.permissionText}>⏳ Loading camera...</Text>
+      </View>
+    );
+  }
+
+  if (!hasPermission) {
     return (
       <View style={styles.centered}>
         <Text style={styles.permissionText}>
-          Camera not available or permission denied
+          ✗ Camera permission denied
+        </Text>
+      </View>
+    );
+  }
+
+  if (device == null) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.permissionText}>
+          ✗ No camera device found
         </Text>
       </View>
     );
@@ -64,7 +118,7 @@ const QRScanner = ({ onRead }: { onRead: (value: string | null) => void }) => {
         codeScanner={codeScanner}
         style={StyleSheet.absoluteFill}
         device={device}
-        isActive={true}
+        isActive={isFocused && appState === 'active'}
       />
 
       {/* Top Bar */}
@@ -103,7 +157,7 @@ export default QRScanner;
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
+    flex: 1,
     width: '100%',
     height: '100%',
     backgroundColor: 'black',

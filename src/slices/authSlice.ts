@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Keychain from 'react-native-keychain';
 import { User } from "../types/user";
 import { RootState } from "../store";
 import { API_BASE } from '../config';
@@ -76,10 +77,32 @@ export const refreshSession = createAsyncThunk(
     }
 );
 
-export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
-    await AsyncStorage.removeItem('user');
-    await AsyncStorage.removeItem('authToken');
-});
+export const logoutUser = createAsyncThunk(
+    'auth/logoutUser',
+    async (_, { getState, rejectWithValue }) => {
+        try {
+            const { authToken } = (getState() as RootState).auth;
+            if (authToken) {
+                await fetch(`${API_BASE}/api/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                });
+            }
+        } catch (err) {
+            console.error('Logout API error:', err);
+        }
+        await AsyncStorage.removeItem('user');
+        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.removeItem('sessionToken');
+
+        // Clear PIN from Keychain
+        try {
+            await Keychain.resetGenericPassword({ service: 'userPin' });
+        } catch (err) {
+            console.error('Error clearing Keychain:', err);
+        }
+    }
+);
 
 export const checkAuth = createAsyncThunk('auth/checkAuth', async (_, { rejectWithValue }) => {
     try {
@@ -107,8 +130,22 @@ const authSlice = createSlice({
             AsyncStorage.setItem('authToken', action.payload.authToken);
         },
         clearSession: (state) => {
+            state.user = undefined;
+            state.authToken = null;
             state.sessionToken = null;
             state.isAuthenticated = false;
+            state.isLoggedIn = false;
+            state.status = 'idle';
+            AsyncStorage.removeItem('user');
+            AsyncStorage.removeItem('authToken');
+            AsyncStorage.removeItem('sessionToken');
+
+            // Clear PIN from Keychain
+            try {
+                Keychain.resetGenericPassword({ service: 'userPin' });
+            } catch (err) {
+                console.error('Error clearing Keychain:', err);
+            }
         },
     },
     extraReducers: (builder) => {
@@ -134,6 +171,9 @@ const authSlice = createSlice({
                 state.isLoggedIn = false;
                 state.isAuthenticated = false;
                 state.status = 'idle';
+            })
+            .addCase(checkAuth.pending, (state) => {
+                state.status = 'loading';
             })
             .addCase(checkAuth.fulfilled, (state, action) => {
                 state.user = action.payload.user;
