@@ -18,6 +18,8 @@ import { TextInput } from '../../components/ui/TextInput';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, selectAuthStatus, selectIsLoggedIn, selectError } from '../../slices/authSlice';
 import { AppDispatch } from '../../store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE } from '../../config';
 
 // Import SVG icons
 import HideIcon from '../../assets/icons/hide.svg';
@@ -40,12 +42,44 @@ export default function LoginScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigation.replace('PinLock');
+      // After successful login, check if PIN is set
+      checkPinAndNavigate();
     }
     if (authStatus === 'failed' && authError) {
       Alert.alert('Login Failed', authError);
     }
   }, [isLoggedIn, authStatus, authError, navigation]);
+
+  const checkPinAndNavigate = async () => {
+    try {
+      const authToken = await AsyncStorage.getItem('authToken');
+      if (!authToken) {
+        navigation.replace('Login');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/login-pin/check`, {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.has_pin) {
+        // PIN is already set, go to lock screen to enter it
+        navigation.replace('PinLock');
+      } else {
+        // No PIN set yet, go to setup screen
+        navigation.replace('PinSetup');
+      }
+    } catch (error) {
+      console.error('PIN check error:', error);
+      // On error, still allow them to setup PIN
+      navigation.replace('PinSetup');
+    }
+  };
 
   const validateInputs = () => {
     const trimmedPhoneNumber = phoneNumber.trim();

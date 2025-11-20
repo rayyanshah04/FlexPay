@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground, Dimensions, AppState } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as Keychain from 'react-native-keychain';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, refreshSession, selectIsAuthenticated } from '../../slices/authSlice';
+import { selectUser, refreshSession, selectIsAuthenticated, selectAuthToken, clearSession } from '../../slices/authSlice';
 import BackspaceIcon from '../../assets/icons/backspace.svg';
 import { AppDispatch } from '../../store';
+import { API_BASE } from '../../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PinLock'>;
 
@@ -17,8 +18,22 @@ const PIN_LENGTH = 4;
 export default function PinLockScreen({ navigation }: Props) {
   const [pin, setPin] = useState('');
   const user = useSelector(selectUser);
+  const authToken = useSelector(selectAuthToken);
   const dispatch = useDispatch<AppDispatch>();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const appState = useRef(AppState.currentState);
+  const inactivityTimeout = useRef<NodeJS.Timeout | null>(null);
+  const INACTIVITY_TIME = 60000; // 1 minute
+
+  const resetInactivityTimer = () => {
+    if (inactivityTimeout.current) {
+      clearTimeout(inactivityTimeout.current);
+    }
+    inactivityTimeout.current = setTimeout(() => {
+      dispatch(clearSession());
+      setPin('');
+    }, INACTIVITY_TIME);
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -28,23 +43,45 @@ export default function PinLockScreen({ navigation }: Props) {
 
   useEffect(() => {
     const checkPinStatus = async () => {
-      if (!user?.id) {
+      if (!user?.id || !authToken) {
         navigation.replace('Login');
         return;
       }
       try {
-        const credentials = await Keychain.getGenericPassword({ service: 'userPin' });
-        if (!credentials) {
-          navigation.replace('PinSetup');
+        const response = await fetch(`${API_BASE}/api/login-pin/check`, {
+          method: 'GET',
+          headers: { 
+            'Authorization': `Bearer ${authToken}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          navigation.replace('Login');
+          return;
         }
+
+        if (!data.has_pin) {
+          navigation.replace('PinSetup');
+          return;
+        }
+
+        // PIN is set, start inactivity timer
+        resetInactivityTimer();
       } catch (error) {
-        console.error('Keychain check error:', error);
+        console.error('PIN status check error:', error);
         Alert.alert('Error', 'Could not check PIN status. Please try again.');
         navigation.replace('Login');
       }
     };
     checkPinStatus();
-  }, [user, navigation]);
+    return () => {
+      if (inactivityTimeout.current) {
+        clearTimeout(inactivityTimeout.current);
+      }
+    };
+  }, [user, authToken, navigation]);
 
   useEffect(() => {
     if (pin.length === PIN_LENGTH) {
@@ -55,15 +92,17 @@ export default function PinLockScreen({ navigation }: Props) {
   const handleKeyPress = (key: string) => {
     if (pin.length < PIN_LENGTH) {
       setPin(pin + key);
+      resetInactivityTimer();
     }
   };
 
   const handleBackspace = () => {
     setPin(pin.slice(0, -1));
+    resetInactivityTimer();
   };
 
   const handleUnlock = async () => {
-    if (!user?.id) {
+    if (!user?.id || !authToken) {
       Alert.alert('Error', 'User not logged in.');
       return;
     }
@@ -71,15 +110,18 @@ export default function PinLockScreen({ navigation }: Props) {
     try {
       const credentials = await Keychain.getGenericPassword({ service: 'userPin' });
       if (credentials && credentials.password === pin) {
+        resetInactivityTimer();
         dispatch(refreshSession());
       } else {
         Alert.alert('Invalid PIN', 'The PIN you entered is incorrect.');
         setPin('');
+        resetInactivityTimer();
       }
     } catch (error) {
       console.error('Keychain unlock error:', error);
       Alert.alert('Error', 'Could not verify PIN. Please try again.');
       setPin('');
+      resetInactivityTimer();
     }
   };
 
@@ -93,6 +135,7 @@ export default function PinLockScreen({ navigation }: Props) {
       });
 
       if (credentials) {
+        resetInactivityTimer();
         dispatch(refreshSession());
       }
     } catch (error: any) {

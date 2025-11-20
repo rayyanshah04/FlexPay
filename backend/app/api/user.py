@@ -148,4 +148,30 @@ def update_device_token(current_user):
     log_event('INFO', f'Device token updated for user_id: {user_id}', user_id=user_id)
     return jsonify({"message": "Device token updated successfully"})
 
+@bp.route('/login-pin/check', methods=['GET'])
+@auth_token_required
+def check_login_pin(current_user):
+    user_id = current_user['id']
+    user = db.execute("SELECT login_pin FROM users WHERE id = ?", user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    has_pin = user[0]['login_pin'] is not None
+    return jsonify({"has_pin": has_pin})
+
+@bp.route('/login-pin/set', methods=['POST'])
+@auth_token_required
+def set_login_pin(current_user):
+    user_id = current_user['id']
+    data = request.get_json()
+    pin = data.get('pin')
+    
+    if not pin or len(pin) != 4 or not pin.isdigit():
+        return jsonify({"error": "PIN must be exactly 4 digits"}), 400
+    
+    db.execute("UPDATE users SET login_pin = ? WHERE id = ?", pin, user_id)
+    log_event('INFO', f'Login PIN set for user_id: {user_id}', user_id=user_id)
+    return jsonify({"message": "Login PIN set successfully"})
+
 

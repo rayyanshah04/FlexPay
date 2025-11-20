@@ -4,9 +4,11 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigations/StackNavigator';
 import { colors } from '../../theme/style';
 import * as Keychain from 'react-native-keychain';
-import { useSelector } from 'react-redux';
-import { selectUser } from '../../slices/authSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectUser, selectAuthToken, refreshSession } from '../../slices/authSlice';
 import BackspaceIcon from '../../assets/icons/backspace.svg';
+import { API_BASE } from '../../config';
+import { AppDispatch } from '../../store';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PinSetup'>;
 
@@ -14,18 +16,30 @@ const PIN_LENGTH = 4;
 
 export default function PinSetupScreen({ navigation }: Props) {
   const [pin, setPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
+  const [firstPin, setFirstPin] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
   const user = useSelector(selectUser);
+  const authToken = useSelector(selectAuthToken);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     if (pin.length === PIN_LENGTH && !isConfirming) {
+      // First PIN entered, store it and switch to confirming mode
+      setFirstPin(pin);
       setIsConfirming(true);
+      setPin(''); // Clear for second entry
     } else if (pin.length === PIN_LENGTH && isConfirming) {
-      setConfirmPin(pin);
-      handleSetPin(pin);
+      // Second PIN entered, compare and submit
+      if (firstPin === pin) {
+        handleSetPin(pin);
+      } else {
+        Alert.alert('PINs do not match', 'Please try again.');
+        setPin('');
+        setFirstPin('');
+        setIsConfirming(false);
+      }
     }
-  }, [pin, isConfirming]);
+  }, [pin.length, isConfirming, firstPin]);
 
   const handleKeyPress = (key: string) => {
     if (pin.length < PIN_LENGTH) {
@@ -43,21 +57,39 @@ export default function PinSetupScreen({ navigation }: Props) {
       return;
     }
 
-    if (confirmPin !== finalPin) {
-      Alert.alert('PINs do not match', 'Please try again.');
-      setPin('');
-      setConfirmPin('');
-      setIsConfirming(false);
-      return;
-    }
-
     try {
+      const response = await fetch(`${API_BASE}/api/login-pin/set`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ pin: finalPin }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Error', data.error || 'Could not set PIN. Please try again.');
+        setPin('');
+        setFirstPin('');
+        setIsConfirming(false);
+        return;
+      }
+
       await Keychain.setGenericPassword(String(user.id), finalPin, { service: 'userPin' });
       Alert.alert('PIN Set', 'Your PIN has been set successfully.');
-      navigation.replace('PinLock');
+      
+      // Refresh session to get a valid session token for API calls
+      dispatch(refreshSession());
+      
+      navigation.replace('AppTabs');
     } catch (error) {
-      console.error('Keychain error:', error);
+      console.error('PIN setup error:', error);
       Alert.alert('Error', 'Could not set PIN. Please try again.');
+      setPin('');
+      setFirstPin('');
+      setIsConfirming(false);
     }
   };
 
