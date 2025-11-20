@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -60,13 +60,15 @@ export default function QRCodeScreen() {
     fetchUserDetails();
   }, []);
 
-  const handleScan = (data: string | null) => {
-    setScannedData(data);
-    if (data) {
-      alert(`Scanned QR Code: ${data}`);
+  const handleScan = useCallback((data: string | null) => {
+    if (data === null) {
       setIsScanning(false);
+      return;
     }
-  };
+    setScannedData(data);
+    Alert.alert('Scanned QR Code', data);
+    setIsScanning(false);
+  }, []);
 
   const handleShare = async () => {
     try {
@@ -74,7 +76,7 @@ export default function QRCodeScreen() {
 
       // Capture the QR card as an image
       const uri = await viewShotRef.current.capture();
-      
+
       // Share the image
       await Share.open({
         url: Platform.OS === 'android' ? `file://${uri}` : uri,
@@ -95,18 +97,7 @@ export default function QRCodeScreen() {
   if (isScanning) {
     return (
       <View style={styles.scannerContainer}>
-        {/* <QRScanner onRead={handleScan} /> */}
-        <TouchableOpacity
-          style={[styles.backButton, { top: insets.top + 16 }]}
-          onPress={() => setIsScanning(false)}
-        >
-          <BackIcon width={24} height={24} fill={colors.white} />
-        </TouchableOpacity>
-        <View style={styles.scannerOverlay}>
-          <Text style={styles.scannerText}>
-            {scannedData ? `Scanned: ${scannedData}` : 'Point camera at a QR code'}
-          </Text>
-        </View>
+        <QRScanner onRead={handleScan} />
       </View>
     );
   }
