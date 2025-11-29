@@ -1,24 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FlexPay Admin{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('admin.static', filename='admin/style.css') }}">
+    <!-- Preload logo to prevent blinking -->
+    <link rel="preload" href="/admin/static/admin/logo-white.png" as="image">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/admin/static/admin/favicon.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --sidebar-bg: #1E1E1E;
+            --text-color: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --primary-color: #9747ff;
+            --accent-color: #d4f3fdff;
+            --danger-color: #FF453A;
+            --card-bg: #1E1E1E;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --hover-bg: rgba(151, 71, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            margin-top: 24px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-left: 12px;
+        }
+
+        .logo img {
+            height: 56px;
+            object-fit: contain;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - 260px);
+        }
+
+        /* Top Bar Styles */
+        .top-bar {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 40px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 2px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #7000ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(151, 71, 255, 0.3);
+        }
+
+        .logout-btn {
+            margin-left: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 69, 58, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* Page Content Styles */
+        .content-wrapper {
+            padding: 40px;
+            flex: 1;
+        }
+
+        /* Common Component Styles (available to child templates) */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-color);
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-color);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <h1>FlexPay Admin</h1>
-        <nav>
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.login') }}">Login</a>
+
+<body hx-boost="true">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="/admin/static/admin/logo-white.png" alt="FlexPay Logo">
+        </div>
+
+        <nav class="nav-links">
+            <a href="/admin/dashboard" class="nav-item {% if request.path == '/admin/dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i>
+                Dashboard
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-users"></i>
+                Users
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                Transactions
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                Cards
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-bell"></i>
+                Notifications
+            </a>
+            <a href="/admin/settings" class="nav-item">
+                <i class="fas fa-cog"></i>
+                Settings
+            </a>
         </nav>
-    </header>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-    <footer>
-        <p>&copy; 2024 FlexPay Admin</p>
-    </footer>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Super Admin</div>
+                </div>
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <a href="/admin/logout" class="logout-btn" title="Logout" hx-boost="false">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="content-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
 </body>
+
 </html>

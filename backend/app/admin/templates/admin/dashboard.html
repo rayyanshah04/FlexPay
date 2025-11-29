@@ -3,6 +3,573 @@
 {% block title %}Dashboard - FlexPay Admin{% endblock %}
 
 {% block content %}
-<h2>Dashboard</h2>
-<p>Welcome to the FlexPay Admin Panel.</p>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="dashboard-container">
+    <!-- Zone A: At a glance metrics -->
+    <section class="metrics-grid">
+        <div class="metric-card card-1">
+            <div class="metric-icon"><i class="fas fa-users"></i></div>
+            <div class="metric-info">
+                <h3>Total Users</h3>
+                <div class="metric-row">
+                    <p class="metric-value">1,245</p>
+                    <span class="metric-trend positive"><i class="fas fa-arrow-up"></i> 12%</span>
+                </div>
+            </div>
+        </div>
+        <div class="metric-card card-2">
+            <div class="metric-icon"><i class="fas fa-credit-card"></i></div>
+            <div class="metric-info">
+                <h3>Cards Issued</h3>
+                <div class="metric-row">
+                    <p class="metric-value">892</p>
+                    <span class="metric-trend positive"><i class="fas fa-arrow-up"></i> 5%</span>
+                </div>
+            </div>
+        </div>
+        <div class="metric-card card-3">
+            <div class="metric-icon"><i class="fas fa-exchange-alt"></i></div>
+            <div class="metric-info">
+                <h3>Total Volume</h3>
+                <div class="metric-row">
+                    <p class="metric-value">$4.2M</p>
+                    <span class="metric-trend positive"><i class="fas fa-arrow-up"></i> 8%</span>
+                </div>
+            </div>
+        </div>
+        <div class="metric-card card-4">
+            <div class="metric-icon"><i class="fas fa-calendar-day"></i></div>
+            <div class="metric-info">
+                <h3>Today's Volume</h3>
+                <div class="metric-row">
+                    <p class="metric-value">$12.5k</p>
+                    <span class="metric-trend neutral"><i class="fas fa-minus"></i> 0%</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="main-grid">
+        <!-- Zone B: Activity Panels -->
+        <div class="zone-b">
+            <!-- Transaction Graph -->
+            <div class="card graph-card">
+                <div class="card-header">
+                    <h2>Transaction Volume</h2>
+                    <select class="period-select">
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="transactionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="split-row">
+                <!-- New Users List -->
+                <div class="card list-card">
+                    <div class="card-header">
+                        <h2>New Users (Last 7 Days)</h2>
+                    </div>
+                    <ul class="simple-list">
+                        <li>
+                            <div class="user-avatar-sm">JD</div>
+                            <div class="list-info">
+                                <span class="primary-text">John Doe</span>
+                                <span class="sub-text">Joined 2 hours ago</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar-sm">AS</div>
+                            <div class="list-info">
+                                <span class="primary-text">Alice Smith</span>
+                                <span class="sub-text">Joined 5 hours ago</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="user-avatar-sm">RK</div>
+                            <div class="list-info">
+                                <span class="primary-text">Rayyan Khan</span>
+                                <span class="sub-text">Joined 1 day ago</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card list-card">
+                    <div class="card-header">
+                        <h2>Recent Transactions</h2>
+                    </div>
+                    <ul class="transaction-list">
+                        <li class="transaction-item">
+                            <div class="tx-icon sent"><i class="fas fa-arrow-up"></i></div>
+                            <div class="tx-details">
+                                <span class="tx-user">Sarah Connor</span>
+                                <span class="tx-date">Today, 10:42 AM</span>
+                            </div>
+                            <span class="tx-amount negative">-$120.00</span>
+                        </li>
+                        <li class="transaction-item">
+                            <div class="tx-icon received"><i class="fas fa-arrow-down"></i></div>
+                            <div class="tx-details">
+                                <span class="tx-user">James Bond</span>
+                                <span class="tx-date">Today, 09:15 AM</span>
+                            </div>
+                            <span class="tx-amount positive">+$500.00</span>
+                        </li>
+                        <li class="transaction-item">
+                            <div class="tx-icon sent"><i class="fas fa-arrow-up"></i></div>
+                            <div class="tx-details">
+                                <span class="tx-user">Netflix</span>
+                                <span class="tx-date">Yesterday</span>
+                            </div>
+                            <span class="tx-amount negative">-$15.99</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone C: Insights Section -->
+        <div class="zone-c">
+            <div class="card insight-card">
+                <h2>Insights</h2>
+
+                <div class="insight-section">
+                    <h3>Top Senders</h3>
+                    <div class="insight-row">
+                        <span>1. Michael Scott</span>
+                        <span class="highlight">$5,200</span>
+                    </div>
+                    <div class="insight-row">
+                        <span>2. Dwight Schrute</span>
+                        <span class="highlight">$3,100</span>
+                    </div>
+                </div>
+
+                <div class="insight-section">
+                    <h3>Top Receivers</h3>
+                    <div class="insight-row">
+                        <span>1. Pam Beesly</span>
+                        <span class="highlight">$4,800</span>
+                    </div>
+                    <div class="insight-row">
+                        <span>2. Jim Halpert</span>
+                        <span class="highlight">$4,200</span>
+                    </div>
+                </div>
+
+                <div class="insight-section">
+                    <h3>Latest New Users</h3>
+                    <div class="tags">
+                        <span class="tag">@rayyan</span>
+                        <span class="tag">@alex</span>
+                        <span class="tag">@sarah</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Override base.html card margin */
+    .card {
+        margin-bottom: 0 !important;
+    }
+
+    /* Zone A: Metrics - Responsive Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+    }
+
+    .metric-card {
+        border-radius: 20px;
+        padding: 24px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 160px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* Gradient Logic: Dark Purple -> Lighter */
+    .card-1 {
+        background: linear-gradient(135deg, #4a148c, #7b1fa2);
+    }
+
+    .card-2 {
+        background: linear-gradient(135deg, #6a1b9a, #8e24aa);
+    }
+
+    .card-3 {
+        background: linear-gradient(135deg, #7b1fa2, #9c27b0);
+    }
+
+    .card-4 {
+        background: linear-gradient(135deg, #8e24aa, #ab47bc);
+    }
+
+    .metric-icon {
+        font-size: 24px;
+        opacity: 0.8;
+        margin-bottom: 16px;
+    }
+
+    .metric-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .metric-row {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .metric-trend {
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .metric-trend.positive {
+        color: #69f0ae;
+    }
+
+    .metric-trend.neutral {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Layout for Zone B & C */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+        gap: 20px;
+    }
+
+    .zone-b {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .zone-c {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .split-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    /* Card Styles */
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .card-header h2 {
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .period-select {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        outline: none;
+    }
+
+    .period-select option {
+        background-color: #333;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    /* Lists */
+    .simple-list,
+    .transaction-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .simple-list li,
+    .transaction-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .simple-list li:last-child,
+    .transaction-item:last-child {
+        border-bottom: none;
+    }
+
+    .user-avatar-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--hover-bg);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 12px;
+    }
+
+    .list-info,
+    .tx-details {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .primary-text,
+    .tx-user {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .sub-text,
+    .tx-date {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .tx-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 14px;
+    }
+
+    .tx-icon.sent {
+        background: rgba(255, 69, 58, 0.1);
+        color: var(--danger-color);
+    }
+
+    .tx-icon.received {
+        background: rgba(52, 199, 89, 0.1);
+        color: #34C759;
+    }
+
+    .tx-amount {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .tx-amount.negative {
+        color: var(--text-color);
+    }
+
+    .tx-amount.positive {
+        color: #34C759;
+    }
+
+    /* Zone C: Insights */
+    .insight-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .insight-card h2 {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .insight-section {
+        margin-bottom: 28px;
+    }
+
+    .insight-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .insight-section h3 {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 600;
+    }
+
+    .insight-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+
+    .insight-row:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .insight-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .highlight {
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .tag {
+        background: linear-gradient(135deg, rgba(151, 71, 255, 0.2), rgba(151, 71, 255, 0.1));
+        color: var(--primary-color);
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid rgba(151, 71, 255, 0.3);
+        transition: all 0.2s;
+    }
+
+    .tag:hover {
+        background: linear-gradient(135deg, rgba(151, 71, 255, 0.3), rgba(151, 71, 255, 0.2));
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .main-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('transactionChart').getContext('2d');
+
+        // Create Gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(151, 71, 255, 0.5)');
+        gradient.addColorStop(1, 'rgba(151, 71, 255, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Transaction Volume',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                    borderColor: '#9747ff',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#9747ff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#1E1E1E',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: false,
+                        callbacks: {
+                            label: function (context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            callback: function (value) {
+                                return '$' + value / 1000 + 'k';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
