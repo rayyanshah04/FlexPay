@@ -1,0 +1,479 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Coupons - FlexPay Admin{% endblock %}
+
+{% block content %}
+<div class="coupons-container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Coupons Management</h1>
+            <p class="subtitle">Manage and track all coupon codes</p>
+        </div>
+        <button class="btn-primary" onclick="openAddCouponModal()">
+            <i class="fas fa-plus"></i>
+            Create New Coupon
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4a148c, #7b1fa2);">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Total Coupons</span>
+                <span class="stat-value">{{ total_coupons }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #1b5e20, #388e3c);">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Highest Value</span>
+                <span class="stat-value">Rs {{ highest_value|int }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #e65100, #f57c00);">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Total Amount</span>
+                <span class="stat-value">Rs {{ total_amount|int }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coupons Table -->
+    <div class="table-card">
+        <div class="table-header">
+            <h2>All Coupons</h2>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="coupons-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coupon Code</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coupon in coupons %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <div class="coupon-code">
+                                <i class="fas fa-ticket-alt"></i>
+                                <span>{{ coupon.coupon_code }}</span>
+                            </div>
+                        </td>
+                        <td><span class="amount">Rs {{ coupon.amount|int }}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" title="Edit"
+                                    onclick="editCoupon({{ coupon.id }}, '{{ coupon.coupon_code }}', {{ coupon.amount }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon" title="Copy Code"
+                                    onclick="copyCouponCode('{{ coupon.coupon_code }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="btn-icon danger" title="Delete"
+                                    onclick="deleteCoupon({{ coupon.id }}, '{{ coupon.coupon_code }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Coupon Modal -->
+<div id="couponModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Create New Coupon</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="couponForm" method="POST" action="/admin/coupons/add">
+            <input type="hidden" id="couponId" name="coupon_id">
+
+            <div class="form-group">
+                <label for="couponCode">Coupon Code</label>
+                <input type="text" id="couponCode" name="coupon_code" required placeholder="e.g., MEGA1000"
+                    pattern="[A-Z0-9]+" title="Only uppercase letters and numbers allowed"
+                    style="text-transform: uppercase;">
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Amount (Rs)</label>
+                <input type="number" id="amount" name="amount" required placeholder="e.g., 1000" min="1" step="1">
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i>
+                    Save Coupon
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .coupons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-left h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), #7000ff);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: var(--card-bg);
+        color: white;
+        border: 1px solid var(--border-color);
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .table-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .table-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-header h2 {
+        font-size: 20px;
+        margin: 0;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .coupons-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .coupons-table thead {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .coupons-table th {
+        padding: 16px 24px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .coupons-table td {
+        padding: 20px 24px;
+        border-top: 1px solid var(--border-color);
+        font-size: 14px;
+    }
+
+    .coupons-table tbody tr {
+        transition: background 0.2s;
+    }
+
+    .coupons-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .coupon-code {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+    }
+
+    .coupon-code i {
+        color: var(--primary-color);
+    }
+
+    .amount {
+        font-weight: 600;
+        color: #34C759;
+        font-size: 15px;
+    }
+
+    .action-buttons {
+        display: flex;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .btn-icon.danger:hover {
+        background: rgba(255, 69, 58, 0.1);
+        color: var(--danger-color);
+        border-color: var(--danger-color);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+        background-color: var(--card-bg);
+        margin: 10% auto;
+        padding: 0;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 32px;
+        cursor: pointer;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+        color: white;
+    }
+
+    .modal-content form {
+        padding: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        color: white;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+        border-color: var(--primary-color);
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+    }
+</style>
+
+<script>
+    function openAddCouponModal() {
+        document.getElementById('modalTitle').textContent = 'Create New Coupon';
+        document.getElementById('couponForm').action = '/admin/coupons/add';
+        document.getElementById('couponId').value = '';
+        document.getElementById('couponCode').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('couponModal').style.display = 'block';
+    }
+
+    function editCoupon(id, code, amount) {
+        document.getElementById('modalTitle').textContent = 'Edit Coupon';
+        document.getElementById('couponForm').action = '/admin/coupons/edit';
+        document.getElementById('couponId').value = id;
+        document.getElementById('couponCode').value = code;
+        document.getElementById('amount').value = amount;
+        document.getElementById('couponModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('couponModal').style.display = 'none';
+    }
+
+    function copyCouponCode(code) {
+        navigator.clipboard.writeText(code).then(function () {
+            alert('Coupon code "' + code + '" copied to clipboard!');
+        }, function (err) {
+            alert('Failed to copy coupon code');
+        });
+    }
+
+    function deleteCoupon(id, code) {
+        if (confirm('Are you sure you want to delete coupon "' + code + '"?')) {
+            window.location.href = '/admin/coupons/delete/' + id;
+        }
+    }
+
+    window.onclick = function (event) {
+        const modal = document.getElementById('couponModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}

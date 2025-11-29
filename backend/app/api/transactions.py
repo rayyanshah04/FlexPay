@@ -131,3 +131,82 @@ def get_transactions(current_user):
     )
 
     return jsonify({"transactions": transactions})
+
+
+@bp.route('/coupons/redeem', methods=['POST'])
+@session_token_required
+def redeem_coupon(current_user):
+    """Redeem a coupon code and credit the amount to user's balance"""
+    data = request.get_json()
+    coupon_code = data.get('coupon_code', '').upper().strip()
+    user_id = current_user['id']
+    
+    print(f"DEBUG: ============ COUPON REDEMPTION ============")
+    print(f"DEBUG: User ID: {user_id}")
+    print(f"DEBUG: User Name: {current_user.get('name', 'Unknown')}")
+    print(f"DEBUG: Coupon Code: '{coupon_code}'")
+    print(f"DEBUG: ==========================================")
+    
+    if not coupon_code:
+        return jsonify({"error": "Coupon code is required"}), 400
+    
+    try:
+        # Check if coupon exists
+        coupon = db.execute("SELECT id, coupon_code, amount FROM coupons WHERE coupon_code = ?", coupon_code)
+        
+        if not coupon:
+            log_event('WARNING', f'Invalid coupon code attempted: {coupon_code}', user_id=user_id)
+            print(f"DEBUG: Coupon not found: '{coupon_code}'")
+            return jsonify({"error": "Invalid coupon code"}), 404
+        
+        coupon_id = coupon[0]['id']
+        coupon_amount = coupon[0]['amount']
+        
+        print(f"DEBUG: Coupon found - ID: {coupon_id}, Amount: {coupon_amount}")
+        
+        # Check if user has already redeemed this coupon
+        already_redeemed = db.execute(
+            "SELECT id FROM coupon_redemptions WHERE user_id = ? AND coupon_id = ?",
+            user_id, coupon_id
+        )
+        
+        if already_redeemed:
+            log_event('WARNING', f'Coupon {coupon_code} already redeemed by user {user_id}', user_id=user_id)
+            print(f"DEBUG: Coupon already redeemed by this user")
+            return jsonify({"error": "You have already redeemed this coupon"}), 400
+        
+        # Get current balance
+        user = db.execute("SELECT balance, name FROM users WHERE id = ?", user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        current_balance = user[0]['balance']
+        user_name = user[0]['name']
+        new_balance = current_balance + coupon_amount
+        
+        # Update user balance
+        db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", coupon_amount, user_id)
+        
+        # Record the redemption
+        db.execute(
+            "INSERT INTO coupon_redemptions (user_id, coupon_id, amount) VALUES (?, ?, ?)",
+            user_id, coupon_id, coupon_amount
+        )
+        
+        log_event('INFO', f'Coupon {coupon_code} redeemed successfully by {user_name} for Rs {coupon_amount}',
+                 user_id=user_id, details=f"coupon_id: {coupon_id}, amount: {coupon_amount}")
+        
+        print(f"DEBUG: Coupon redeemed successfully! New balance: {new_balance}")
+        
+        return jsonify({
+            "message": "Coupon redeemed successfully",
+            "coupon_code": coupon_code,
+            "amount": coupon_amount,
+            "previous_balance": current_balance,
+            "new_balance": new_balance
+        }), 200
+        
+    except Exception as e:
+        log_event('ERROR', f'Coupon redemption failed for user {user_id}. Error: {e}', user_id=user_id)
+        print(f"ERROR: Coupon redemption failed: {e}")
+        return jsonify({"error": f"Redemption failed: {str(e)}"}), 500

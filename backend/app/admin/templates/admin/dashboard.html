@@ -492,15 +492,25 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const ctx = document.getElementById('transactionChart').getContext('2d');
+    let chartInstance = null; // Store chart instance globally
+
+    function initializeChart() {
+        const canvas = document.getElementById('transactionChart');
+        if (!canvas) return; // Exit if canvas doesn't exist
+
+        // Destroy existing chart if it exists
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
 
         // Create Gradient
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, 'rgba(151, 71, 255, 0.5)');
         gradient.addColorStop(1, 'rgba(151, 71, 255, 0)');
 
-        new Chart(ctx, {
+        chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -566,6 +576,14 @@
                 }
             }
         });
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', initializeChart);
+
+    // Re-initialize after HTMX swaps content
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        initializeChart();
     });
 </script>
 {% endblock %}
