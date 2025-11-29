@@ -14,8 +14,7 @@
             <div class="metric-info">
                 <h3>Total Users</h3>
                 <div class="metric-row">
-                    <p class="metric-value">1,245</p>
-                    <span class="metric-trend positive"><i class="fas fa-arrow-up"></i> 12%</span>
+                    <p class="metric-value">{{ total_users }}</p>
                 </div>
             </div>
         </div>
@@ -24,8 +23,7 @@
             <div class="metric-info">
                 <h3>Cards Issued</h3>
                 <div class="metric-row">
-                    <p class="metric-value">892</p>
-                    <span class="metric-trend positive"><i class="fas fa-arrow-up"></i> 5%</span>
+                    <p class="metric-value">{{ cards_issued }}</p>
                 </div>
             </div>
         </div>
@@ -34,18 +32,16 @@
             <div class="metric-info">
                 <h3>Total Volume</h3>
                 <div class="metric-row">
-                    <p class="metric-value">$4.2M</p>
-                    <span class="metric-trend positive"><i class="fas fa-arrow-up"></i> 8%</span>
+                    <p class="metric-value">Rs {{ total_volume }}</p>
                 </div>
             </div>
         </div>
         <div class="metric-card card-4">
             <div class="metric-icon"><i class="fas fa-calendar-day"></i></div>
             <div class="metric-info">
-                <h3>Today's Volume</h3>
+                <h3>Average Transaction Amount</h3>
                 <div class="metric-row">
-                    <p class="metric-value">$12.5k</p>
-                    <span class="metric-trend neutral"><i class="fas fa-minus"></i> 0%</span>
+                    <p class="metric-value">Rs {{ average_transaction }}</p>
                 </div>
             </div>
         </div>

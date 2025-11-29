@@ -1,8 +1,11 @@
 from flask import render_template, request, redirect, url_for, flash, session
 from werkzeug.security import check_password_hash
+from cs50 import SQL
 from functools import wraps
 from app.database import db
 from . import admin_bp
+
+db = SQL("sqlite:///instance/database.db")
 
 def login_required(f):
     @wraps(f)
@@ -13,13 +16,13 @@ def login_required(f):
     return decorated_function
 
 @admin_bp.route('/')
-def index():
-    return render_template('admin/dashboard.html')
-
 @admin_bp.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('admin/dashboard.html')
+    total_users = db.execute("SELECT COUNT(*) FROM users")[0]['COUNT(*)']
+    cards_issued = db.execute("SELECT COUNT(*) FROM cards")[0]['COUNT(*)']
+    total_volume = db.execute("SELECT SUM(balance) AS total_volume FROM users;")[0]['total_volume']
+    return render_template('admin/dashboard.html', total_users=total_users, cards_issued=cards_issued, total_volume=total_volume)
 
 @admin_bp.route('/settings')
 @login_required
