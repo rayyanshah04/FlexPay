@@ -68,8 +68,8 @@ def send_money(current_user):
         
         # Insert transaction record
         result = db.execute(
-            "INSERT INTO transactions (sender_id, receiver_id, amount, status) VALUES (?, ?, ?, ?)",
-            sender_id, receiver_id, amount, 'completed'
+            "INSERT INTO transactions (transaction_type, sender_id, receiver_id, amount, status, note) VALUES (?, ?, ?, ?, ?, ?)",
+            'transfer', sender_id, receiver_id, amount, 'completed', note
         )
         
         # Get transaction ID
@@ -119,13 +119,18 @@ def get_transactions(current_user):
     user_id = current_user['id']
     
     transactions = db.execute(
-        "SELECT t.id, t.amount, t.timestamp, t.status, "
-        "t.sender_id, t.receiver_id, "
-        "s.name as sender_name, r.name as receiver_name "
+        "SELECT t.id, t.transaction_type, t.amount, t.timestamp, t.status, "
+        "t.sender_id, t.receiver_id, t.note, "
+        "CASE "
+        "  WHEN t.transaction_type = 'transfer' THEN s.name "
+        "  WHEN t.transaction_type = 'coupon_redemption' THEN 'Coupon: ' || t.note "
+        "  ELSE 'System' "
+        "END as sender_name, "
+        "r.name as receiver_name "
         "FROM transactions t "
-        "JOIN users s ON t.sender_id = s.id "
+        "LEFT JOIN users s ON t.sender_id = s.id AND t.transaction_type = 'transfer' "
         "JOIN users r ON t.receiver_id = r.id "
-        "WHERE t.sender_id = ? OR t.receiver_id = ? "
+        "WHERE t.receiver_id = ? OR (t.sender_id = ? AND t.transaction_type = 'transfer') "
         "ORDER BY t.timestamp DESC",
         user_id, user_id
     )
@@ -166,7 +171,7 @@ def redeem_coupon(current_user):
         
         # Check if user has already redeemed this coupon
         already_redeemed = db.execute(
-            "SELECT id FROM coupon_redemptions WHERE user_id = ? AND coupon_id = ?",
+            "SELECT id FROM transactions WHERE transaction_type = 'coupon_redemption' AND receiver_id = ? AND sender_id = ?",
             user_id, coupon_id
         )
         
@@ -187,10 +192,11 @@ def redeem_coupon(current_user):
         # Update user balance
         db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", coupon_amount, user_id)
         
-        # Record the redemption
+        # Record the redemption in transactions table
+        # sender_id = coupon_id for redemptions
         db.execute(
-            "INSERT INTO coupon_redemptions (user_id, coupon_id, amount) VALUES (?, ?, ?)",
-            user_id, coupon_id, coupon_amount
+            "INSERT INTO transactions (transaction_type, sender_id, receiver_id, amount, status, note) VALUES (?, ?, ?, ?, ?, ?)",
+            'coupon_redemption', coupon_id, user_id, coupon_amount, 'completed', coupon_code
         )
         
         log_event('INFO', f'Coupon {coupon_code} redeemed successfully by {user_name} for Rs {coupon_amount}',

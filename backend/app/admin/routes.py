@@ -32,17 +32,30 @@ def login_required(f):
 @admin_bp.route('/dashboard')
 @login_required
 def dashboard():
+    # top cards
     total_users = db.execute("SELECT COUNT(*) FROM users")[0]['COUNT(*)']
     cards_issued = db.execute("SELECT COUNT(*) FROM cards")[0]['COUNT(*)']
     total_volume = db.execute("SELECT SUM(balance) AS total_volume FROM users;")[0]['total_volume']
     average_transaction = db.execute("SELECT AVG(amount) AS average_transaction FROM transactions;")[0]['average_transaction']
-    return render_template('admin/dashboard.html', total_users=total_users, cards_issued=cards_issued, total_volume=total_volume, average_transaction=average_transaction)
+    
+    # new users
+    new_users = db.execute("SELECT name, created_at FROM users ORDER BY created_at DESC;")
+    return render_template('admin/dashboard.html',
+    total_users=total_users, 
+    cards_issued=cards_issued, 
+    total_volume=total_volume, 
+    average_transaction=average_transaction,
+    new_users=new_users)
 
 @admin_bp.route('/settings')
 @login_required
 def settings():
     return render_template('admin/settings.html')
 
+
+
+
+# coupons
 @admin_bp.route('/coupons')
 @login_required
 def coupons():
@@ -102,6 +115,9 @@ def delete_coupon(coupon_id):
     
     return redirect(url_for('admin.coupons'))
 
+
+
+# authentication
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
