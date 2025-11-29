@@ -13,4 +13,7 @@ def create_app():
     app.register_blueprint(transactions.bp)
     app.register_blueprint(qr.bp)
 
+    from .admin import admin_bp
+    app.register_blueprint(admin_bp)
+
     return app
