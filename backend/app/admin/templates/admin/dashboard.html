@@ -39,7 +39,7 @@
         <div class="metric-card card-4">
             <div class="metric-icon"><i class="fas fa-calendar-day"></i></div>
             <div class="metric-info">
-                <h3>Average Transaction Amount</h3>
+                <h3>Average Transaction</h3>
                 <div class="metric-row">
                     <p class="metric-value">Rs {{ average_transaction }}</p>
                 </div>
@@ -163,11 +163,32 @@
         margin-bottom: 0 !important;
     }
 
-    /* Zone A: Metrics - Responsive Grid */
+    /* Zone A: Metrics - Always 4 columns with horizontal scroll */
     .metrics-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(4, minmax(240px, 1fr));
         gap: 20px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    /* Hide scrollbar but keep functionality */
+    .metrics-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .metrics-grid::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+    }
+
+    .metrics-grid::-webkit-scrollbar-thumb {
+        background: rgba(151, 71, 255, 0.3);
+        border-radius: 3px;
+    }
+
+    .metrics-grid::-webkit-scrollbar-thumb:hover {
+        background: rgba(151, 71, 255, 0.5);
     }
 
     .metric-card {
@@ -462,10 +483,246 @@
         transform: translateY(-2px);
     }
 
-    /* Responsive */
+    /* Responsive Design */
+
+    /* Desktop and Large Tablets */
     @media (max-width: 1200px) {
         .main-grid {
             grid-template-columns: 1fr;
+        }
+
+        .zone-c {
+            margin-top: 0;
+        }
+    }
+
+    /* Tablets */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            gap: 16px;
+        }
+
+        /* Metric cards - keep in row but allow smaller sizes */
+        .metrics-grid {
+            gap: 12px;
+        }
+
+        .metric-card {
+            height: 140px;
+            padding: 20px;
+        }
+
+        .metric-icon {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .metric-value {
+            font-size: 26px;
+        }
+
+        .metric-info h3 {
+            font-size: 13px;
+        }
+
+        /* Split row - single column on tablet */
+        .split-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        /* Chart container */
+        .chart-container {
+            height: 250px;
+        }
+
+        /* Card header */
+        .card-header h2 {
+            font-size: 16px;
+        }
+
+        .period-select {
+            font-size: 13px;
+            padding: 5px 10px;
+        }
+
+        /* Insights */
+        .insight-card h2 {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .insight-section {
+            margin-bottom: 20px;
+        }
+
+        .insight-section h3 {
+            font-size: 12px;
+        }
+
+        .insight-row {
+            font-size: 13px;
+            padding: 6px 10px;
+        }
+    }
+
+    /* Mobile Devices */
+    @media (max-width: 480px) {
+        .dashboard-container {
+            gap: 12px;
+        }
+
+        /* Metric cards - keep in row, allow horizontal scroll */
+        .metrics-grid {
+            gap: 10px;
+        }
+
+        .metric-card {
+            height: 120px;
+            padding: 16px;
+            border-radius: 16px;
+        }
+
+        .metric-icon {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 22px;
+        }
+
+        .metric-info h3 {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .metric-row {
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .metric-trend {
+            font-size: 12px;
+        }
+
+        /* Main grid */
+        .main-grid {
+            gap: 12px;
+        }
+
+        .zone-b {
+            gap: 12px;
+        }
+
+        /* Cards */
+        .card {
+            padding: 16px !important;
+            border-radius: 16px !important;
+        }
+
+        .card-header {
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .card-header h2 {
+            font-size: 15px;
+        }
+
+        .period-select {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+
+        /* Chart */
+        .chart-container {
+            height: 200px;
+        }
+
+        /* Lists */
+        .simple-list li,
+        .transaction-item {
+            padding: 10px 0;
+        }
+
+        .user-avatar-sm {
+            width: 36px;
+            height: 36px;
+            font-size: 13px;
+            margin-right: 10px;
+        }
+
+        .primary-text,
+        .tx-user {
+            font-size: 13px;
+        }
+
+        .sub-text,
+        .tx-date {
+            font-size: 11px;
+        }
+
+        .tx-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .tx-amount {
+            font-size: 13px;
+        }
+
+        /* Insights */
+        .insight-card h2 {
+            font-size: 15px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+        }
+
+        .insight-section {
+            margin-bottom: 16px;
+        }
+
+        .insight-section h3 {
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+
+        .insight-row {
+            font-size: 12px;
+            padding: 6px 8px;
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            font-size: 13px;
+        }
+
+        .tags {
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 360px) {
+        .metric-value {
+            font-size: 20px;
+        }
+
+        .metric-info h3 {
+            font-size: 11px;
+        }
+
+        .chart-container {
+            height: 180px;
         }
     }
 </style>
