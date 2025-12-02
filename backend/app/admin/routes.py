@@ -5,20 +5,9 @@ from functools import wraps
 import secrets
 from app.database import db
 from . import admin_bp
+from datetime import datetime, timedelta
 
 db = SQL("sqlite:///instance/database.db")
-
-def generate_coupon_code():
-    """Generate a random 6-digit hexadecimal coupon code"""
-    while True:
-        # Generate 6 random hexadecimal digits (uppercase)
-        code = secrets.token_hex(3).upper()  # 3 bytes = 6 hex digits
-        
-        # Check if code already exists in database
-        existing = db.execute("SELECT id FROM coupons WHERE coupon_code = ?", code)
-        
-        if not existing:
-            return code
 
 def login_required(f):
     @wraps(f)
@@ -36,10 +25,54 @@ def dashboard():
     total_users = db.execute("SELECT COUNT(*) FROM users")[0]['COUNT(*)']
     cards_issued = db.execute("SELECT COUNT(*) FROM cards")[0]['COUNT(*)']
     total_volume = db.execute("SELECT SUM(balance) AS total_volume FROM users;")[0]['total_volume']
+    total_volume = round(total_volume, 2)
+
     average_transaction = db.execute("SELECT AVG(amount) AS average_transaction FROM transactions;")[0]['average_transaction']
+    average_transaction = round(average_transaction, 2)
+
     
     # new users
-    new_users = db.execute("SELECT name, created_at FROM users ORDER BY created_at DESC;")
+    query = db.execute("SELECT name, created_at FROM users ORDER BY created_at DESC LIMIT 3;")
+    new_users = []
+
+    for user in query:
+        created_dt = datetime.strptime(user['created_at'], "%Y-%m-%d %H:%M:%S")
+        created_dt = created_dt + timedelta(hours=5)
+        
+        # calculating time difference
+        diff = datetime.now() - created_dt
+        days = diff.days
+        seconds = diff.seconds
+
+        # formatting time ago
+        if days >= 30:
+            months = days // 30
+            time_ago = f"{months} month" + ("s" if months > 1 else "")
+        elif days >= 1:
+            time_ago = f"{days} day" + ("s" if days > 1 else "")
+        elif seconds >= 3600:
+            hours = seconds // 3600
+            time_ago = f"{hours} hour" + ("s" if hours > 1 else "")
+        elif seconds >= 60:
+            minutes = seconds // 60
+            time_ago = f"{minutes} minute" + ("s" if minutes > 1 else "")
+        else:
+            time_ago = "just now"
+
+        # getting first letters
+        words = user['name'].split()
+        if len(words) == 1:
+            letters = words[0][0]
+        else:
+            letters = words[0][0] + words[1][0]
+
+        # appending
+        new_users.append({
+            'letters': letters.upper(),
+            'name': user['name'],
+            'created_at': time_ago
+        })
+
     return render_template('admin/dashboard.html',
     total_users=total_users, 
     cards_issued=cards_issued, 

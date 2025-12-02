@@ -71,27 +71,15 @@
                         <h2>New Users</h2>
                     </div>
                     <ul class="simple-list">
+                        {% for user in new_users %}
                         <li>
-                            <div class="user-avatar-sm">JD</div>
+                            <div class="user-avatar-sm">{{ user.letters }}</div>
                             <div class="list-info">
-                                <span class="primary-text">John Doe</span>
-                                <span class="sub-text">Joined 2 hours ago</span>
+                                <span class="primary-text">{{ user.name }}</span>
+                                <span class="sub-text">Joined {{ user.created_at }} ago</span>
                             </div>
                         </li>
-                        <li>
-                            <div class="user-avatar-sm">AS</div>
-                            <div class="list-info">
-                                <span class="primary-text">Alice Smith</span>
-                                <span class="sub-text">Joined 5 hours ago</span>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="user-avatar-sm">RK</div>
-                            <div class="list-info">
-                                <span class="primary-text">Rayyan Khan</span>
-                                <span class="sub-text">Joined 1 day ago</span>
-                            </div>
-                        </li>
+                        {% endfor %}
                     </ul>
                 </div>
 
