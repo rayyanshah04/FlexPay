@@ -42,15 +42,46 @@ class NotificationService {
       },
 
       onNotification: function (notification) {
-        console.log('NOTIFICATION:', notification);
+        console.log('NOTIFICATION RECEIVED:', notification);
+        console.log('Notification data:', notification.data);
+        console.log('User interaction:', notification.userInteraction);
+        console.log('Foreground:', notification.foreground);
+
+        // Handle remote FCM notifications when app is in foreground
+        // When app is in background/closed, Android handles it automatically
+        if (notification.foreground && !notification.userInteraction) {
+          // App is in foreground, show local notification
+          const title = notification.title || '💰 FlexPay';
+          const message = notification.message || notification.body || 'New notification';
+
+          PushNotification.localNotification({
+            channelId: 'flexpay-transactions',
+            title: title,
+            message: message,
+            playSound: true,
+            soundName: 'default',
+            importance: 'high',
+            priority: 'high',
+            vibrate: true,
+            vibration: 300,
+            data: notification.data,
+          });
+        }
+
+        // Handle notification tap (user clicked on notification)
+        if (notification.userInteraction) {
+          console.log('User tapped notification:', notification.data);
+          // TODO: Navigate to appropriate screen based on notification.data.type
+          // For now, just log it
+        }
       },
 
       onAction: function (notification) {
-        console.log('ACTION:', notification.action);
+        console.log('NOTIFICATION ACTION:', notification.action);
         console.log('NOTIFICATION:', notification);
       },
 
-      onRegistrationError: function(err) {
+      onRegistrationError: function (err) {
         console.error(err.message, err);
       },
 
@@ -105,10 +136,10 @@ class NotificationService {
 
   transactionNotification = (type: 'sent' | 'received', amount: string, name: string) => {
     const title = type === 'sent' ? '💸 Money Sent' : '💰 Money Received';
-    const message = type === 'sent' 
+    const message = type === 'sent'
       ? `You sent Rs. ${amount} to ${name}`
       : `You received Rs. ${amount} from ${name}`;
-    
+
     this.localNotification(title, message, 'flexpay-transactions');
   };
 

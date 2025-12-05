@@ -89,30 +89,24 @@
                         <h2>Recent Transactions</h2>
                     </div>
                     <ul class="transaction-list">
+                        {% for transaction in recent_transactions %}
                         <li class="transaction-item">
+                            {% if transaction.type == "red" %}
                             <div class="tx-icon sent"><i class="fas fa-arrow-up"></i></div>
-                            <div class="tx-details">
-                                <span class="tx-user">Sarah Connor</span>
-                                <span class="tx-date">Today, 10:42 AM</span>
-                            </div>
-                            <span class="tx-amount negative">-$120.00</span>
-                        </li>
-                        <li class="transaction-item">
+                            {% elif transaction.type == "green" %}
                             <div class="tx-icon received"><i class="fas fa-arrow-down"></i></div>
+                            {% endif %}
                             <div class="tx-details">
-                                <span class="tx-user">James Bond</span>
-                                <span class="tx-date">Today, 09:15 AM</span>
+                                <span class="tx-user">{{ transaction.name }}</span>
+                                <span class="tx-date">{{ transaction.time }}</span>
                             </div>
-                            <span class="tx-amount positive">+$500.00</span>
+                            {% if transaction.type == "red" %}
+                            <span class="tx-amount negative">Rs. {{ transaction.amount }}</span>
+                            {% elif transaction.type == "green" %}
+                            <span class="tx-amount positive">Rs. {{ transaction.amount }}</span>
+                            {% endif %}
                         </li>
-                        <li class="transaction-item">
-                            <div class="tx-icon sent"><i class="fas fa-arrow-up"></i></div>
-                            <div class="tx-details">
-                                <span class="tx-user">Netflix</span>
-                                <span class="tx-date">Yesterday</span>
-                            </div>
-                            <span class="tx-amount negative">-$15.99</span>
-                        </li>
+                        {% endfor %}
                     </ul>
                 </div>
             </div>

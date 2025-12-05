@@ -73,15 +73,51 @@ def dashboard():
 
     # recent transactions
     query = db.execute("SELECT transaction_type, sender_id, receiver_id, amount, timestamp, transaction_id FROM transactions ORDER BY timestamp DESC LIMIT 6;")
-    print(query)
+    recent_transactions = []
+    for user in query:
+        if len(recent_transactions) >= 3:  # stop after 3 entries
+            break
+        dt = datetime.strptime(user["timestamp"], "%Y-%m-%d %H:%M:%S")
+        time = dt.strftime("%I:%M %p")
+        diff = datetime.now() - dt
+        days = diff.days
+        minute = diff.seconds // 60
 
+        if days == 0:
+            time = time
+        elif days == 1:
+            time = f"Yesterday"
+        else:
+            time = f"{days} days ago"
+
+        if user["transaction_type"] == "sent":
+            name = db.execute("SELECT name FROM users WHERE id = ?", user["sender_id"])[0]
+            recent_transactions.append({
+                "name" : name["name"],
+                "amount" : user["amount"],
+                "time" : time,
+                "type" : "red"
+            })
+        elif user["transaction_type"] == "redeemed":
+            name = db.execute("SELECT name FROM users WHERE id = ?", user["receiver_id"])[0]
+            recent_transactions.append({
+                "name" : name["name"],
+                "amount" : user["amount"],
+                "time" : time,
+                "type" : "green"
+            })
+        else:
+            continue
+        
+    print(recent_transactions)
 
     return render_template('admin/dashboard.html',
     total_users=total_users, 
     cards_issued=cards_issued, 
     total_volume=total_volume, 
     average_transaction=average_transaction,
-    new_users=new_users)
+    new_users=new_users,
+    recent_transactions=recent_transactions)
 
 @admin_bp.route('/settings')
 @login_required
@@ -175,3 +211,153 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('admin.login'))
+
+
+# Notifications
+@admin_bp.route('/notifications')
+@login_required
+def notifications():
+    """Display notification panel with form and history"""
+    # Get all users for dropdown
+    users = db.execute("SELECT id, name, phone_number FROM users ORDER BY name")
+    
+    # Get stats
+    total_users = len(users)
+    devices_with_tokens = db.execute("SELECT COUNT(*) FROM users WHERE device_token IS NOT NULL")[0]['COUNT(*)']
+    
+    # Get today's notifications sent
+    today = datetime.now().strftime('%Y-%m-%d')
+    notifications_sent_today = db.execute(
+        "SELECT COUNT(*) FROM notification_logs WHERE DATE(sent_at) = ?", 
+        today
+    )[0]['COUNT(*)']
+    
+    # Get notification history
+    history_query = db.execute("""
+        SELECT 
+            nl.*,
+            u.name as recipient_name
+        FROM notification_logs nl
+        LEFT JOIN users u ON nl.recipient_id = u.id
+        ORDER BY nl.sent_at DESC
+        LIMIT 50
+    """)
+    
+    notification_history = []
+    for notif in history_query:
+        # Format timestamp
+        dt = datetime.strptime(notif['sent_at'], "%Y-%m-%d %H:%M:%S")
+        time_ago = dt.strftime("%b %d, %I:%M %p")
+        
+        notification_history.append({
+            'title': notif['title'],
+            'message': notif['message'],
+            'target_type': notif['target_type'],
+            'recipient_name': notif['recipient_name'] if notif['recipient_name'] else 'All Users',
+            'recipient_count': notif['recipient_count'],
+            'status': notif['status'],
+            'sent_at': time_ago
+        })
+    
+    return render_template('notifications.html',
+                         users=users,
+                         total_users=total_users,
+                         devices_with_tokens=devices_with_tokens,
+                         notifications_sent_today=notifications_sent_today,
+                         notification_history=notification_history)
+
+@admin_bp.route('/notifications/send', methods=['POST'])
+@login_required
+def send_notification():
+    """Send push notification to users"""
+    from ..config import FCM_API_KEY
+    from pyfcm.fcm import FCMNotification
+    
+    title = request.form.get('title')
+    message = request.form.get('message')
+    target_type = request.form.get('target_type')  # 'all' or 'specific'
+    user_id = request.form.get('user_id')
+    custom_data = request.form.get('custom_data', '{}')
+    
+    if not title or not message:
+        flash('Title and message are required!', 'error')
+        return redirect(url_for('admin.notifications'))
+    
+    if target_type == 'specific' and not user_id:
+        flash('Please select a user!', 'error')
+        return redirect(url_for('admin.notifications'))
+    
+    try:
+        # Parse custom data
+        import json
+        try:
+            data_payload = json.loads(custom_data) if custom_data else {}
+        except:
+            data_payload = {}
+        
+        data_payload.update({
+            'type': 'admin_notification',
+            'title': title,
+            'message': message
+        })
+        
+        recipient_count = 0
+        status = 'sent'
+        
+        if FCM_API_KEY:
+            push_service = FCMNotification(api_key=FCM_API_KEY)
+            
+            if target_type == 'all':
+                # Get all device tokens
+                users = db.execute("SELECT device_token FROM users WHERE device_token IS NOT NULL")
+                device_tokens = [user['device_token'] for user in users]
+                
+                if device_tokens:
+                    # Send to multiple devices
+                    result = push_service.notify_multiple_devices(
+                        registration_ids=device_tokens,
+                        message_title=title,
+                        message_body=message,
+                        data_message=data_payload
+                    )
+                    recipient_count = len(device_tokens)
+                    print(f"DEBUG: Sent notification to {recipient_count} devices. Result: {result}")
+                else:
+                    flash('No devices with tokens found!', 'error')
+                    return redirect(url_for('admin.notifications'))
+            
+            else:  # specific user
+                user = db.execute("SELECT device_token, name FROM users WHERE id = ?", user_id)
+                if user and user[0]['device_token']:
+                    result = push_service.notify_single_device(
+                        registration_id=user[0]['device_token'],
+                        message_title=title,
+                        message_body=message,
+                        data_message=data_payload
+                    )
+                    recipient_count = 1
+                    print(f"DEBUG: Sent notification to {user[0]['name']}. Result: {result}")
+                else:
+                    flash('User has no registered device!', 'error')
+                    return redirect(url_for('admin.notifications'))
+        else:
+            flash('FCM_API_KEY not configured!', 'error')
+            return redirect(url_for('admin.notifications'))
+        
+        # Log notification
+        db.execute("""
+            INSERT INTO notification_logs 
+            (title, message, target_type, recipient_id, recipient_count, status, sent_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, title, message, target_type, 
+            user_id if target_type == 'specific' else None,
+            recipient_count, status, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        
+        flash(f'Notification sent successfully to {recipient_count} device(s)!', 'success')
+        
+    except Exception as e:
+        print(f"ERROR: Failed to send notification: {e}")
+        flash(f'Error sending notification: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.notifications'))
+

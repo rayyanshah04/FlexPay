@@ -60,15 +60,78 @@ export default function QRCodeScreen() {
     fetchUserDetails();
   }, []);
 
-  const handleScan = useCallback((data: string | null) => {
+  const handleScan = useCallback(async (data: string | null) => {
     if (data === null) {
       setIsScanning(false);
       return;
     }
-    setScannedData(data);
-    Alert.alert('Scanned QR Code', data);
-    setIsScanning(false);
-  }, []);
+
+    try {
+      // Step 1: Parse QR code
+      let qrData: any;
+      try {
+        qrData = typeof data === 'string' ? JSON.parse(data) : data;
+      } catch (e) {
+        console.error('Failed to parse QR code:', e);
+        Alert.alert(
+          'Invalid QR Code',
+          'Invalid QR code format. Please scan a valid FlexPay QR code.'
+        );
+        setIsScanning(false);
+        return;
+      }
+
+      // Step 2: Validate required fields
+      if (!qrData.name || !qrData.phone) {
+        console.error('QR code missing required fields:', qrData);
+        Alert.alert(
+          'Invalid QR Code',
+          'This QR code is missing required information. Please scan a valid FlexPay QR code.'
+        );
+        setIsScanning(false);
+        return;
+      }
+
+      console.log('QR data validated:', qrData);
+
+      // Step 3: Verify user exists in database
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${API_BASE}/api/qr/verify-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          phone: qrData.phone,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('User Not Found', result.error || 'This user does not exist in FlexPay.');
+        setIsScanning(false);
+        return;
+      }
+
+      // Step 4: User verified, navigate to payment
+      console.log('User verified:', result.user);
+      setIsScanning(false);
+
+      // Navigate to ConfirmPayment
+      navigation.navigate('ConfirmPayment' as never, {
+        name: result.user.name,
+        phone: result.user.phone,
+        amount: '0',
+      } as never);
+
+    } catch (error) {
+      console.error('QR scanning error:', error);
+      Alert.alert('Error', 'Network error. Please check your connection and try again.');
+      setIsScanning(false);
+    }
+  }, [navigation]);
 
   const handleShare = async () => {
     try {

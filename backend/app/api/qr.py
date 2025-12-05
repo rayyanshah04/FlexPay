@@ -80,3 +80,45 @@ def get_latest_qr_scan(current_user):
     latest_scan = user_scans[-1]
     
     return jsonify({"latest_scan": latest_scan})
+
+
+@bp.route('/qr/verify-user', methods=['POST'])
+@auth_token_required
+def verify_user(current_user):
+    """Verify if a user exists by phone number from scanned QR code"""
+    from ..database import db
+    
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    phone = data.get('phone')
+    
+    if not phone:
+        return jsonify({"error": "Phone number is required"}), 400
+    
+    # Debug logging
+    print(f"DEBUG: Verifying user with phone: {phone}")
+    
+    # Check if user exists in database
+    user = db.execute("SELECT id, name, phone_number FROM users WHERE phone_number = ?", phone)
+    
+    print(f"DEBUG: Query result: {user}")
+    
+    if not user:
+        log_event('INFO', f'QR scan verification failed - user not found: {phone}', user_id=current_user['id'])
+        return jsonify({"error": "User not found. This QR code is invalid or the user has deleted their account."}), 404
+    
+    user_data = user[0]
+    
+    log_event('INFO', f'QR scan verification successful - user found: {user_data["name"]}', user_id=current_user['id'])
+    
+    return jsonify({
+        "verified": True,
+        "user": {
+            "name": user_data['name'],
+            "phone": user_data['phone_number']
+        }
+    })
+

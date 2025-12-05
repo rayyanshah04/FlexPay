@@ -36,38 +36,60 @@ const ScanQRScreen = ({ navigation }: Props) => {
         try {
           qrData = typeof data === 'string' ? JSON.parse(data) : data;
         } catch (e) {
-          qrData = { raw: data };
+          console.error('Failed to parse QR code:', e);
+          Alert.alert(
+            'Invalid QR Code',
+            'Invalid QR code format. Please scan a valid FlexPay QR code.'
+          );
+          setLoading(false);
+          return;
         }
 
-        // Send to backend API
-        const response = await fetch(`${API_BASE}/api/qr-decode`, {
+        // Step 2: Check if required fields exist
+        if (!qrData.name || !qrData.phone) {
+          console.error('QR code missing required fields:', qrData);
+          Alert.alert(
+            'Invalid QR Code',
+            'This QR code is missing required information. Please scan a valid FlexPay QR code.'
+          );
+          setLoading(false);
+          return;
+        }
+
+        console.log('QR data validated:', qrData);
+
+        // Step 3: Verify user exists in database
+        const response = await fetch(`${API_BASE}/api/qr/verify-user`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`,
           },
           body: JSON.stringify({
-            raw_data: data,
-            parsed_data: qrData,
-            timestamp: new Date().toISOString(),
+            phone: qrData.phone,
           }),
         });
 
         const result = await response.json();
 
         if (!response.ok) {
-          Alert.alert('Error', result.error || 'Failed to process QR code');
+          // User not found or other error
+          Alert.alert('User Not Found', result.error || 'This user does not exist in FlexPay.');
           setLoading(false);
           return;
         }
 
-        // Store the data and show options
-        setScannedData(qrData);
+        // Step 4: User verified, store data and show options
+        console.log('User verified:', result.user);
+        setScannedData({
+          name: result.user.name,
+          phone: result.user.phone,
+        });
         setShowOptions(true);
         setLoading(false);
       } catch (error) {
         console.error('QR scanning error:', error);
-        Alert.alert('Error', 'Failed to scan QR code. Please try again.');
+        Alert.alert('Error', 'Network error. Please check your connection and try again.');
         setLoading(false);
       }
     },
