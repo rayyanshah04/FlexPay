@@ -1,150 +1,131 @@
-import PushNotification, { Importance } from 'react-native-push-notification';
+
 import { Platform } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 import { store } from '../store';
 import { API_BASE } from '../config';
 
+const DEBUG_PREFIX = '🔥 FLEXPAY_FCM_DEBUG 🔥';
+
 class NotificationService {
+  private fcmToken: string | null = null;
+
   constructor() {
-    this.configure();
-    this.createDefaultChannels();
+    console.log(`${DEBUG_PREFIX} [INIT] NotificationService constructor called`);
+    this.setupFCMTokenListener();
+    this.listenForAuthChanges();
   }
 
-  configure = () => {
-    PushNotification.configure({
-      onRegister: async function (token) {
-        console.log('TOKEN:', token);
-        const state = store.getState();
-        const userToken = state.auth.user?.token;
-
-        if (userToken) {
-          try {
-            const response = await fetch(`${API_BASE}/api/user/device-token`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${userToken}`,
-              },
-              body: JSON.stringify({ device_token: token.token }),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json();
-              console.error('Failed to send device token to backend:', errorData);
-            } else {
-              console.log('Device token sent to backend successfully.');
-            }
-          } catch (error) {
-            console.error('Error sending device token to backend:', error);
-          }
+  setupFCMTokenListener = () => {
+    console.log(`${DEBUG_PREFIX} [SETUP] setupFCMTokenListener called, Platform: ${Platform.OS}`);
+    
+    try {
+      console.log(`${DEBUG_PREFIX} [SETUP] Setting up Firebase Cloud Messaging listener`);
+      
+      // Get token on app start
+      messaging().getToken().then((token) => {
+        if (token) {
+          console.log(`${DEBUG_PREFIX} [STEP 1/4] ✅ FCM Token Retrieved from Firebase`);
+          console.log(`${DEBUG_PREFIX} [STEP 1/4] Token value: ${token}`);
+          console.log(`${DEBUG_PREFIX} [STEP 1/4] Token length: ${token?.length}`);
+          this.fcmToken = token;
+          // Try to send the token immediately if the user is already logged in
+          this.sendTokenToBackend();
         } else {
-          console.log('User not authenticated, device token not sent to backend.');
+          console.log(`${DEBUG_PREFIX} [STEP 1/4] ⚠️ No FCM token available yet`);
         }
-      },
+      }).catch((error) => {
+        console.error(`${DEBUG_PREFIX} [SETUP] ❌ Error getting initial token:`, error);
+      });
 
-      onNotification: function (notification) {
-        console.log('NOTIFICATION RECEIVED:', notification);
-        console.log('Notification data:', notification.data);
-        console.log('User interaction:', notification.userInteraction);
-        console.log('Foreground:', notification.foreground);
+      // Listen for new tokens
+      messaging().onTokenRefresh((token) => {
+        console.log(`${DEBUG_PREFIX} [STEP 1/4] ✅ FCM Token Refreshed from Firebase`);
+        console.log(`${DEBUG_PREFIX} [STEP 1/4] New token value: ${token}`);
+        console.log(`${DEBUG_PREFIX} [STEP 1/4] Token length: ${token?.length}`);
+        this.fcmToken = token;
+        this.sendTokenToBackend();
+      });
 
-        // Handle remote FCM notifications when app is in foreground
-        // When app is in background/closed, Android handles it automatically
-        if (notification.foreground && !notification.userInteraction) {
-          // App is in foreground, show local notification
-          const title = notification.title || '💰 FlexPay';
-          const message = notification.message || notification.body || 'New notification';
+      // Listen for messages
+      messaging().onMessage(async (remoteMessage) => {
+        console.log(`${DEBUG_PREFIX} [EVENT] FCM Message Received:`, remoteMessage);
+      });
+      
+      console.log(`${DEBUG_PREFIX} [SETUP] ✅ Firebase Messaging listeners registered successfully`);
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} [SETUP] ❌ Error setting up FCM listener:`, error);
+    }
+  };
 
-          PushNotification.localNotification({
-            channelId: 'flexpay-transactions',
-            title: title,
-            message: message,
-            playSound: true,
-            soundName: 'default',
-            importance: 'high',
-            priority: 'high',
-            vibrate: true,
-            vibration: 300,
-            data: notification.data,
-          });
-        }
-
-        // Handle notification tap (user clicked on notification)
-        if (notification.userInteraction) {
-          console.log('User tapped notification:', notification.data);
-          // TODO: Navigate to appropriate screen based on notification.data.type
-          // For now, just log it
-        }
-      },
-
-      onAction: function (notification) {
-        console.log('NOTIFICATION ACTION:', notification.action);
-        console.log('NOTIFICATION:', notification);
-      },
-
-      onRegistrationError: function (err) {
-        console.error(err.message, err);
-      },
-
-      permissions: {
-        alert: true,
-        badge: true,
-        sound: true,
-      },
-
-      popInitialNotification: true,
-      requestPermissions: Platform.OS === 'ios',
+  listenForAuthChanges = () => {
+    let previousIsLoggedIn = store.getState().auth.isLoggedIn;
+    store.subscribe(() => {
+      const currentIsLoggedIn = store.getState().auth.isLoggedIn;
+      if (currentIsLoggedIn && !previousIsLoggedIn) {
+        this.sendTokenToBackend();
+      }
+      previousIsLoggedIn = currentIsLoggedIn;
     });
   };
 
-  createDefaultChannels = () => {
-    PushNotification.createChannel(
-      {
-        channelId: 'flexpay-transactions',
-        channelName: 'Transactions',
-        channelDescription: 'Notification channel for transactions',
-        importance: Importance.HIGH,
-        vibrate: true,
-      },
-      (created) => console.log(`createChannel 'flexpay-transactions' returned '${created}'`)
-    );
+  sendTokenToBackend = async () => {
+    if (!this.fcmToken) {
+      console.log(`${DEBUG_PREFIX} [SEND_TOKEN] No FCM token available to send.`);
+      return;
+    }
 
-    PushNotification.createChannel(
-      {
-        channelId: 'flexpay-general',
-        channelName: 'General',
-        channelDescription: 'General notifications',
-        importance: Importance.DEFAULT,
-        vibrate: true,
-      },
-      (created) => console.log(`createChannel 'flexpay-general' returned '${created}'`)
-    );
-  };
+    console.log(`${DEBUG_PREFIX} [STEP 2/4] sendTokenToBackend called`);
+    console.log(`${DEBUG_PREFIX} [STEP 2/4] Device token: ${this.fcmToken}`);
+    
+    const state = store.getState();
+    const userToken = state.auth.authToken;
+    const userId = state.auth.user?.id;
+    const userName = state.auth.user?.name;
 
-  localNotification = (title: string, message: string, channelId: string = 'flexpay-general') => {
-    PushNotification.localNotification({
-      channelId,
-      title,
-      message,
-      playSound: true,
-      soundName: 'default',
-      importance: 'high',
-      priority: 'high',
-      vibrate: true,
-      vibration: 300,
+    console.log(`${DEBUG_PREFIX} [STEP 2/4] Current auth state:`, {
+      hasUserToken: !!userToken,
+      userId,
+      userName,
+      userTokenLength: userToken?.length,
     });
-  };
 
-  transactionNotification = (type: 'sent' | 'received', amount: string, name: string) => {
-    const title = type === 'sent' ? '💸 Money Sent' : '💰 Money Received';
-    const message = type === 'sent'
-      ? `You sent Rs. ${amount} to ${name}`
-      : `You received Rs. ${amount} from ${name}`;
+    if (userToken) {
+      console.log(`${DEBUG_PREFIX} [STEP 2/4] ✅ User is authenticated, proceeding with token send`);
+      
+      try {
+        const url = `${API_BASE}/api/user/device-token`;
+        const payload = { device_token: this.fcmToken };
+        
+        console.log(`${DEBUG_PREFIX} [STEP 3/4] 📡 Sending token to backend`);
+        console.log(`${DEBUG_PREFIX} [STEP 3/4] URL: ${url}`);
+        console.log(`${DEBUG_PREFIX} [STEP 3/4] Payload:`, payload);
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}`,
+          },
+          body: JSON.stringify(payload),
+        });
 
-    this.localNotification(title, message, 'flexpay-transactions');
-  };
+        console.log(`${DEBUG_PREFIX} [STEP 3/4] Response status: a${response.status}`);
 
-  cancelAll = () => {
-    PushNotification.cancelAllLocalNotifications();
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error(`${DEBUG_PREFIX} [STEP 3/4] ❌ Failed to send device token. Status: ${response.status}`, errorData);
+        } else {
+          const successData = await response.json();
+          console.log(`${DEBUG_PREFIX} [STEP 4/4] ✅ Device token sent to backend successfully!`);
+          console.log(`${DEBUG_PREFIX} [STEP 4/4] Response:`, successData);
+        }
+      } catch (error) {
+        console.error(`${DEBUG_PREFIX} [STEP 3/4] ❌ Error sending device token to backend:`, error);
+      }
+    } else {
+      console.log(`${DEBUG_PREFIX} [STEP 2/4] ❌ User not authenticated, device token NOT sent to backend`);
+      console.log(`${DEBUG_PREFIX} [STEP 2/4] Auth state is empty or no user token present`);
+    }
   };
 }
 

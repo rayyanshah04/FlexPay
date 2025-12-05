@@ -124,14 +124,13 @@
                     <div class="phone-screen">
                         <div class="notification-preview">
                             <div class="preview-icon">
-                                <img src="/admin/static/admin/favicon.png" alt="App Icon" />
+                                <img src="/admin/static/admin/icon.png" alt="App Icon" />
                             </div>
                             <div class="preview-content">
                                 <div class="preview-app-name">FlexPay</div>
                                 <div class="preview-title" id="previewTitle">Special Announcement</div>
                                 <div class="preview-message" id="previewMessage">Your notification message will appear
                                     here</div>
-                                <div class="preview-time">now</div>
                             </div>
                         </div>
                     </div>
@@ -224,6 +223,35 @@
 </div>
 
 <style>
+    /* Style for the select dropdown element */
+    select {
+        background-color: #666666;
+        color: white;
+        padding: 8px 12px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    /* Style for dropdown options */
+    select option {
+        background-color: #666666;
+        color: white;
+        padding: 8px;
+    }
+
+    /* Hover effect on options */
+    select option:hover {
+        background-color: #555555;
+        color: white;
+    }
+
+    /* Selected option style */
+    select option:checked {
+        background-color: #444444;
+        color: white;
+    }
+
     .notifications-container {
         max-width: 1400px;
     }
@@ -482,9 +510,8 @@
 
     .preview-icon {
         width: 40px;
-        height: 40px;
+        height: 35px;
         border-radius: 10px;
-        background: var(--primary-color);
         flex-shrink: 0;
         overflow: hidden;
         display: flex;
@@ -731,13 +758,213 @@
         }
 
         .form-actions {
-            flex-direction: column;
-        }
+            .stats-card h3 {
+                font-size: 16px;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
 
-        .btn {
-            width: 100%;
-        }
-    }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+
+            .stat-item {
+                text-align: center;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 10px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-bottom: 4px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            /* History Table */
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .notification-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0 8px;
+            }
+
+            .notification-table thead th {
+                text-align: left;
+                padding: 12px 16px;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .notification-table tbody tr {
+                background: rgba(255, 255, 255, 0.03);
+                transition: all 0.2s;
+            }
+
+            .notification-table tbody tr:hover {
+                background: rgba(255, 255, 255, 0.06);
+                transform: translateX(4px);
+            }
+
+            .notification-table tbody td {
+                padding: 16px;
+                font-size: 14px;
+                border-top: 1px solid transparent;
+                border-bottom: 1px solid transparent;
+            }
+
+            .notification-table tbody tr td:first-child {
+                border-left: 1px solid transparent;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 10px;
+            }
+
+            .notification-table tbody tr td:last-child {
+                border-right: 1px solid transparent;
+                border-top-right-radius: 10px;
+                border-bottom-right-radius: 10px;
+            }
+
+            .time-cell {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: var(--text-secondary);
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .title-cell {
+                font-weight: 600;
+                color: var(--text-color);
+            }
+
+            .message-cell {
+                color: var(--text-secondary);
+                max-width: 300px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .recipients-cell {
+                font-weight: 600;
+                color: var(--primary-color);
+                text-align: center;
+            }
+
+            .target-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .target-badge.all {
+                background: rgba(52, 199, 89, 0.1);
+                color: #34C759;
+            }
+
+            .target-badge.specific {
+                background: rgba(151, 71, 255, 0.1);
+                color: var(--primary-color);
+            }
+
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .status-badge.sent {
+                background: rgba(52, 199, 89, 0.1);
+                color: #34C759;
+            }
+
+            .status-badge.failed {
+                background: rgba(255, 69, 58, 0.1);
+                color: var(--danger-color);
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 60px 20px !important;
+                color: var(--text-secondary);
+            }
+
+            .empty-state i {
+                font-size: 48px;
+                margin-bottom: 16px;
+                opacity: 0.3;
+            }
+
+            .empty-state p {
+                font-size: 16px;
+                font-weight: 600;
+                margin: 12px 0 4px;
+            }
+
+            .empty-state small {
+                font-size: 13px;
+                opacity: 0.7;
+            }
+
+            /* Responsive */
+            @media (max-width: 1024px) {
+                .notification-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .radio-group {
+                    grid-template-columns: 1fr;
+                }
+
+                .form-actions {
+                    flex-direction: column;
+                }
+
+                .btn {
+                    width: 100%;
+                }
+            }
+
+            /* Custom style for the user select dropdown */
+            .form-select option {
+                background-color: #1a1a1a;
+                color: var(--text-color);
+            }
 </style>
 
 <script>

@@ -270,16 +270,25 @@ def notifications():
 @login_required
 def send_notification():
     """Send push notification to users"""
-    from ..config import FCM_API_KEY
-    from pyfcm.fcm import FCMNotification
-    
+    import firebase_admin
+    from firebase_admin import credentials, messaging
+
+    # Initialize Firebase Admin SDK if not already initialized
+    if not firebase_admin._apps:
+        try:
+            cred = credentials.Certificate("instance/serviceAccountKey.json")
+            firebase_admin.initialize_app(cred)
+        except Exception as e:
+            flash('Error initializing Firebase Admin SDK. Make sure serviceAccountKey.json is present in the instance folder.', 'error')
+            return redirect(url_for('admin.notifications'))
+
     title = request.form.get('title')
-    message = request.form.get('message')
+    message_body = request.form.get('message')
     target_type = request.form.get('target_type')  # 'all' or 'specific'
     user_id = request.form.get('user_id')
     custom_data = request.form.get('custom_data', '{}')
     
-    if not title or not message:
+    if not title or not message_body:
         flash('Title and message are required!', 'error')
         return redirect(url_for('admin.notifications'))
     
@@ -298,58 +307,68 @@ def send_notification():
         data_payload.update({
             'type': 'admin_notification',
             'title': title,
-            'message': message
+            'message': message_body
         })
         
         recipient_count = 0
         status = 'sent'
         
-        if FCM_API_KEY:
-            push_service = FCMNotification(api_key=FCM_API_KEY)
+        # Define Android specific notification settings
+        android_config = messaging.AndroidConfig(
+            notification=messaging.AndroidNotification(
+                icon='icon',  # User-specified icon name
+                channel_id='default'  # Default channel ID
+            )
+        )
+
+        if target_type == 'all':
+            # Get all device tokens
+            users = db.execute("SELECT device_token FROM users WHERE device_token IS NOT NULL")
+            device_tokens = [user['device_token'] for user in users]
             
-            if target_type == 'all':
-                # Get all device tokens
-                users = db.execute("SELECT device_token FROM users WHERE device_token IS NOT NULL")
-                device_tokens = [user['device_token'] for user in users]
-                
-                if device_tokens:
-                    # Send to multiple devices
-                    result = push_service.notify_multiple_devices(
-                        registration_ids=device_tokens,
-                        message_title=title,
-                        message_body=message,
-                        data_message=data_payload
-                    )
-                    recipient_count = len(device_tokens)
-                    print(f"DEBUG: Sent notification to {recipient_count} devices. Result: {result}")
-                else:
-                    flash('No devices with tokens found!', 'error')
-                    return redirect(url_for('admin.notifications'))
-            
-            else:  # specific user
-                user = db.execute("SELECT device_token, name FROM users WHERE id = ?", user_id)
-                if user and user[0]['device_token']:
-                    result = push_service.notify_single_device(
-                        registration_id=user[0]['device_token'],
-                        message_title=title,
-                        message_body=message,
-                        data_message=data_payload
-                    )
-                    recipient_count = 1
-                    print(f"DEBUG: Sent notification to {user[0]['name']}. Result: {result}")
-                else:
-                    flash('User has no registered device!', 'error')
-                    return redirect(url_for('admin.notifications'))
-        else:
-            flash('FCM_API_KEY not configured!', 'error')
-            return redirect(url_for('admin.notifications'))
+            if device_tokens:
+                # Send to multiple devices
+                message = messaging.MulticastMessage(
+                    notification=messaging.Notification(
+                        title=title,
+                        body=message_body,
+                    ),
+                    data=data_payload,
+                    tokens=device_tokens,
+                    android=android_config
+                )
+                response = messaging.send_each_for_multicast(message)
+                recipient_count = response.success_count
+                print(f"DEBUG: Sent notification to {recipient_count} devices. Failures: {response.failure_count}")
+            else:
+                flash('No devices with tokens found!', 'error')
+                return redirect(url_for('admin.notifications'))
+        
+        else:  # specific user
+            user = db.execute("SELECT device_token, name FROM users WHERE id = ?", user_id)
+            if user and user[0]['device_token']:
+                message = messaging.Message(
+                    notification=messaging.Notification(
+                        title=title,
+                        body=message_body,
+                    ),
+                    data=data_payload,
+                    token=user[0]['device_token'],
+                    android=android_config
+                )
+                response = messaging.send(message)
+                recipient_count = 1
+                print(f"DEBUG: Sent notification to {user[0]['name']}. Response: {response}")
+            else:
+                flash('User has no registered device!', 'error')
+                return redirect(url_for('admin.notifications'))
         
         # Log notification
         db.execute("""
             INSERT INTO notification_logs 
             (title, message, target_type, recipient_id, recipient_count, status, sent_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, title, message, target_type, 
+        """, title, message_body, target_type, 
             user_id if target_type == 'specific' else None,
             recipient_count, status, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         
