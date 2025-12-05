@@ -40,18 +40,18 @@ const HomeScreen = () => {
   const [hasCard, setHasCard] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const previousBalance = useRef<number | null>(null);
-  
+
   const fetchBalance = async () => {
     try {
       const response = await api('/api/balance');
       if (!response.ok) throw new Error('Failed to fetch balance');
       const data = await response.json();
-      
+
       if (previousBalance.current !== null && data.balance > previousBalance.current) {
         const difference = data.balance - previousBalance.current;
         NotificationService.transactionNotification('received', difference.toFixed(2), 'Someone');
       }
-      
+
       previousBalance.current = data.balance;
       setBalance(data.balance);
     } catch (err) {
@@ -100,153 +100,177 @@ const HomeScreen = () => {
     }, [])
   );
 
- return (
-  <ScrollView
-    style={styles.container}
-    contentContainerStyle={[
-      styles.scrollContent,
-      {
-        paddingTop: insets.top + 24,
-        paddingBottom: insets.bottom + 120,
-        paddingHorizontal: 24,
-      },
-    ]}
-    refreshControl={
-      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-    }
-  >
-    {/* Header */}
-    <View style={styles.header}>
-      <View>
-        <Text style={styles.greetingTitle}>Hi, {userName}</Text>
-        <Text style={styles.greetingSubtitle}>Welcome back</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.profilePic}
-        onPress={() => navigation.navigate('UserSettings')}
-      >
-        <UserIcon width={30} height={30} fill={colors.white} />
-      </TouchableOpacity>
-    </View>
-
-    {/* Balance Card */}
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={() =>
-        navigation.navigate(hasCard ? 'CardScreen' : 'NoCardScreen')
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.scrollContent,
+        {
+          paddingTop: insets.top + 24,
+          paddingBottom: insets.bottom + 120,
+          paddingHorizontal: 24,
+        },
+      ]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
-      style={styles.balanceCardWrapper}
     >
-      <ImageBackground
-        source={require('../../assets/bg.png')}
-        style={styles.gradientCard}
-        imageStyle={{
-          resizeMode: 'contain',
-          transform: [{ rotate: '90deg' }, { scaleX: -1 }, { scale: 3 }],
-          right: 120,
-          top: 10,
-        }}
-        resizeMode="contain"
-      >
-        <View style={styles.balanceContent}>
-          <View style={styles.balanceTitleContainer}>
-            <Text style={styles.balanceTitle}>Total Balance</Text>
-            <TouchableOpacity
-              onPress={() => setIsBalanceVisible(!isBalanceVisible)}
-            >
-              {isBalanceVisible ? (
-                <ShowIcon width={24} height={24} fill={colors.white} />
-              ) : (
-                <HideIcon width={24} height={24} fill={colors.white} />
-              )}
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.balanceAmount}>
-            {isBalanceVisible
-              ? balance !== null
-                ? `Rs. ${new Intl.NumberFormat('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(balance)}`
-                : '...'
-              : '******'}
-          </Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greetingTitle}>Hi, {userName}</Text>
+          <Text style={styles.greetingSubtitle}>Welcome back</Text>
         </View>
-      </ImageBackground>
-    </TouchableOpacity>
-
-    {/* Actions */}
-    <View style={styles.actionsContainer}>
-      <Button
-        variant="primary"
-        icon={() => <ArrowUpIcon width={20} height={20} fill={colors.white} />}
-        onPress={() => navigation.navigate('SendMoney')}
-        style={{ width: 160, marginHorizontal: 2 }}
-      >
-        SEND
-      </Button>
-
-      <Button
-        variant="white"
-        icon={() => <ArrowDownIcon width={20} height={20} fill={colors.black} />}
-        onPress={() => navigation.navigate('PaymentScreen')}
-        style={{ width: 160, marginHorizontal: 2 }}
-      >
-        RECEIVE
-      </Button>
-    </View>
-
-    {/* Recent Transactions */}
-    <View style={styles.transactionSection}>
-      <View style={styles.transactionHeader}>
-        <Text style={styles.transactionTitle}>Transaction</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('AllTransactions', { transactions, userId: user?.id })}>
-          <Text style={styles.seeAll}>See all</Text>
+        <TouchableOpacity
+          style={styles.profilePic}
+          onPress={() => navigation.navigate('UserSettings')}
+        >
+          <UserIcon width={30} height={30} fill={colors.white} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.transactionList}>
-        {transactions.slice(0, 4).map((transaction) => {
-          const isReceived = transaction.receiver_id === user?.id;
-          const name = isReceived ? transaction.sender_name : transaction.receiver_name;
-          const amount = isReceived ? `+Rs. ${transaction.amount.toFixed(2)}` : `-Rs. ${transaction.amount.toFixed(2)}`;
-          const time = new Date(transaction.timestamp).toLocaleString();
+      {/* Balance Card */}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() =>
+          navigation.navigate(hasCard ? 'CardScreen' : 'NoCardScreen')
+        }
+        style={styles.balanceCardWrapper}
+      >
+        <ImageBackground
+          source={require('../../assets/bg.png')}
+          style={styles.gradientCard}
+          imageStyle={{
+            resizeMode: 'contain',
+            transform: [{ rotate: '90deg' }, { scaleX: -1 }, { scale: 3 }],
+            right: 120,
+            top: 10,
+          }}
+          resizeMode="contain"
+        >
+          <View style={styles.balanceContent}>
+            <View style={styles.balanceTitleContainer}>
+              <Text style={styles.balanceTitle}>Total Balance</Text>
+              <TouchableOpacity
+                onPress={() => setIsBalanceVisible(!isBalanceVisible)}
+              >
+                {isBalanceVisible ? (
+                  <ShowIcon width={24} height={24} fill={colors.white} />
+                ) : (
+                  <HideIcon width={24} height={24} fill={colors.white} />
+                )}
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.balanceAmount}>
+              {isBalanceVisible
+                ? balance !== null
+                  ? `Rs. ${new Intl.NumberFormat('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(balance)}`
+                  : '...'
+                : '******'}
+            </Text>
+          </View>
+        </ImageBackground>
+      </TouchableOpacity>
 
-          return (
-            <View key={transaction.id} style={styles.transactionItem}>
-              <View style={styles.transactionIconContainer}>
-                <View style={styles.transactionIcon}>
-                  <Text style={styles.iconText}>{name.charAt(0)}</Text>
+      {/* Actions */}
+      <View style={styles.actionsContainer}>
+        <Button
+          variant="primary"
+          icon={() => <ArrowUpIcon width={20} height={20} fill={colors.white} />}
+          onPress={() => navigation.navigate('SendMoney')}
+          style={{ width: 160, marginHorizontal: 2 }}
+        >
+          SEND
+        </Button>
+
+        <Button
+          variant="white"
+          icon={() => <ArrowDownIcon width={20} height={20} fill={colors.black} />}
+          onPress={() => navigation.navigate('PaymentScreen')}
+          style={{ width: 160, marginHorizontal: 2 }}
+        >
+          RECEIVE
+        </Button>
+      </View>
+
+      {/* Recent Transactions */}
+      <View style={styles.transactionSection}>
+        <View style={styles.transactionHeader}>
+          <Text style={styles.transactionTitle}>Transaction</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('AllTransactions', { transactions, userId: user?.id })}>
+            <Text style={styles.seeAll}>See all</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.transactionList}>
+          {transactions.slice(0, 4).map((transaction) => {
+            // Determine transaction display based on transaction_type
+            const isReceived = transaction.transaction_type === 'received' || transaction.transaction_type === 'redeemed';
+            const isSent = transaction.transaction_type === 'sent';
+            const isRedeemed = transaction.transaction_type === 'redeemed';
+
+            // For legacy 'transfer' type, fall back to receiver_id check
+            const isLegacyReceived = transaction.transaction_type === 'transfer' && transaction.receiver_id === user?.id;
+            const finalIsReceived = isReceived || isLegacyReceived;
+
+            const name = isRedeemed
+              ? transaction.sender_name // Shows "Coupon: CODE"
+              : finalIsReceived
+                ? transaction.sender_name
+                : transaction.receiver_name;
+
+            const amount = finalIsReceived
+              ? `+Rs. ${transaction.amount.toFixed(2)}`
+              : `-Rs. ${transaction.amount.toFixed(2)}`;
+
+            const time = new Date(transaction.timestamp).toLocaleString();
+
+            // Display type label
+            let typeLabel = 'Transfer';
+            if (isRedeemed) typeLabel = 'Redeemed';
+            else if (isSent) typeLabel = 'Sent';
+            else if (isReceived) typeLabel = 'Received';
+            else if (isLegacyReceived) typeLabel = 'Received';
+            else typeLabel = 'Sent';
+
+            return (
+              <View key={transaction.id} style={styles.transactionItem}>
+                <View style={styles.transactionIconContainer}>
+                  <View style={styles.transactionIcon}>
+                    <Text style={styles.iconText}>{name.charAt(0)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.transactionContent}>
+                  <Text style={styles.transactionName}>{name}</Text>
+                  <Text style={styles.transactionTime}>{time}</Text>
+                </View>
+
+                <View style={styles.transactionRight}>
+                  <Text
+                    style={[
+                      styles.transactionAmount,
+                      {
+                        color: finalIsReceived ? colors.success : colors.text,
+                      },
+                    ]}
+                  >
+                    {amount}
+                  </Text>
+                  <Text style={styles.transactionType}>
+                    {typeLabel}
+                  </Text>
                 </View>
               </View>
-
-              <View style={styles.transactionContent}>
-                <Text style={styles.transactionName}>{name}</Text>
-                <Text style={styles.transactionTime}>{time}</Text>
-              </View>
-
-              <View style={styles.transactionRight}>
-                <Text
-                  style={[
-                    styles.transactionAmount,
-                    {
-                      color: isReceived ? colors.success : colors.text,
-                    },
-                  ]}
-                >
-                  {amount}
-                </Text>
-                <Text style={styles.transactionType}>
-                  {isReceived ? 'Received' : 'Transfer'}
-                </Text>
-              </View>
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
       </View>
-    </View>
-  </ScrollView>
-);
+    </ScrollView>
+  );
 
 };
 export default HomeScreen;
@@ -256,7 +280,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.Background,
   },
-  scrollContent: { 
+  scrollContent: {
     padding: 24,
     paddingBottom: 120,
   },

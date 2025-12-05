@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta, timezone
+import pytz
 from ..database import db
 from ..config import JWT_SECRET
 from ..utils import auth_token_required
@@ -50,8 +51,15 @@ def signup():
         return jsonify({"error": "User with this email already exists"}), 400
     
     hash = generate_password_hash(password)
+    
+    # Get current time in GMT+5 (Pakistan timezone)
+    pk_timezone = pytz.timezone('Asia/Karachi')
+    current_time = datetime.now(pk_timezone).strftime('%Y-%m-%d %H:%M:%S')
 
-    user_id = db.execute("INSERT INTO users (name, email, phone_number, password) VALUES (?, ?, ?, ?)", name, email, phone_number, hash)
+    user_id = db.execute(
+        "INSERT INTO users (name, email, phone_number, password, created_at) VALUES (?, ?, ?, ?, ?)", 
+        name, email, phone_number, hash, current_time
+    )
 
     log_event('INFO', f'New user signed up: {name}', user_id=user_id)
 

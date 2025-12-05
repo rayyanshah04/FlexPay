@@ -25,19 +25,17 @@ def dashboard():
     total_users = db.execute("SELECT COUNT(*) FROM users")[0]['COUNT(*)']
     cards_issued = db.execute("SELECT COUNT(*) FROM cards")[0]['COUNT(*)']
     total_volume = db.execute("SELECT SUM(balance) AS total_volume FROM users;")[0]['total_volume']
-    total_volume = round(total_volume, 2)
+    total_volume = round(total_volume, 2) if total_volume is not None else 0
 
     average_transaction = db.execute("SELECT AVG(amount) AS average_transaction FROM transactions;")[0]['average_transaction']
-    average_transaction = round(average_transaction, 2)
+    average_transaction = round(average_transaction, 2) if average_transaction is not None else 0
 
     
     # new users
     query = db.execute("SELECT name, created_at FROM users ORDER BY created_at DESC LIMIT 3;")
     new_users = []
-
     for user in query:
         created_dt = datetime.strptime(user['created_at'], "%Y-%m-%d %H:%M:%S")
-        created_dt = created_dt + timedelta(hours=5)
         
         # calculating time difference
         diff = datetime.now() - created_dt
@@ -72,6 +70,11 @@ def dashboard():
             'name': user['name'],
             'created_at': time_ago
         })
+
+    # recent transactions
+    query = db.execute("SELECT transaction_type, sender_id, receiver_id, amount, timestamp, transaction_id FROM transactions ORDER BY timestamp DESC LIMIT 6;")
+    print(query)
+
 
     return render_template('admin/dashboard.html',
     total_users=total_users, 

@@ -4,6 +4,9 @@ from ..utils import session_token_required
 from ..logger import log_event
 from ..config import FCM_API_KEY
 from pyfcm.fcm import FCMNotification
+import secrets
+from datetime import datetime
+import pytz
 
 bp = Blueprint('transactions', __name__, url_prefix='/api')
 
@@ -62,20 +65,43 @@ def send_money(current_user):
         return jsonify({"error": "Insufficient balance"}), 400
 
     try:
+        # Generate unique 7-digit hexadecimal transaction ID
+        def generate_transaction_id():
+            """Generate a unique 7-character hexadecimal transaction ID"""
+            while True:
+                txn_id = secrets.token_hex(4)[:7].upper()  # Generate 7-char hex
+                # Check if this ID already exists
+                existing = db.execute("SELECT id FROM transactions WHERE transaction_id = ?", txn_id)
+                if not existing:
+                    return txn_id
+        
+        transaction_id = generate_transaction_id()
+        
+        # Get current time in GMT+5 (Pakistan timezone)
+        pk_timezone = pytz.timezone('Asia/Karachi')
+        current_time = datetime.now(pk_timezone).strftime('%Y-%m-%d %H:%M:%S')
+        
         # Perform atomic transaction
         db.execute("UPDATE users SET balance = balance - ? WHERE id = ?", amount, sender_id)
         db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", amount, receiver_id)
         
-        # Insert transaction record
-        result = db.execute(
-            "INSERT INTO transactions (transaction_type, sender_id, receiver_id, amount, status, note) VALUES (?, ?, ?, ?, ?, ?)",
-            'transfer', sender_id, receiver_id, amount, 'completed', note
+        # Insert TWO transaction records - one for sender, one for receiver
+        # Both records get the SAME transaction_id
+        # Record 1: Sender's perspective (money sent)
+        db.execute(
+            "INSERT INTO transactions (transaction_id, transaction_type, sender_id, receiver_id, amount, status, note, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            transaction_id, 'sent', sender_id, receiver_id, amount, 'completed', note, current_time
         )
+        sender_record_id = db.execute("SELECT last_insert_rowid() as id")[0]['id']
         
-        # Get transaction ID
-        transaction_id = db.execute("SELECT last_insert_rowid() as id")[0]['id']
+        # Record 2: Receiver's perspective (money received)
+        db.execute(
+            "INSERT INTO transactions (transaction_id, transaction_type, sender_id, receiver_id, amount, status, note, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            transaction_id, 'received', sender_id, receiver_id, amount, 'completed', note, current_time
+        )
+        receiver_record_id = db.execute("SELECT last_insert_rowid() as id")[0]['id']
         
-        log_event('INFO', f'Transaction from {sender_id} to {receiver_id} for {amount}', 
+        log_event('INFO', f'Transaction {transaction_id} from {sender_id} to {receiver_id} for {amount}', 
                  user_id=sender_id, details=f"receiver_id: {receiver_id}, amount: {amount}, txn_id: {transaction_id}")
         
         # Send push notification to receiver
@@ -123,14 +149,18 @@ def get_transactions(current_user):
         "t.sender_id, t.receiver_id, t.note, "
         "CASE "
         "  WHEN t.transaction_type = 'transfer' THEN s.name "
-        "  WHEN t.transaction_type = 'coupon_redemption' THEN 'Coupon: ' || t.note "
+        "  WHEN t.transaction_type = 'sent' THEN r.name "
+        "  WHEN t.transaction_type = 'received' THEN s.name "
+        "  WHEN t.transaction_type = 'redeemed' THEN 'Coupon: ' || t.note "
         "  ELSE 'System' "
         "END as sender_name, "
         "r.name as receiver_name "
         "FROM transactions t "
-        "LEFT JOIN users s ON t.sender_id = s.id AND t.transaction_type = 'transfer' "
-        "JOIN users r ON t.receiver_id = r.id "
-        "WHERE t.receiver_id = ? OR (t.sender_id = ? AND t.transaction_type = 'transfer') "
+        "LEFT JOIN users s ON t.sender_id = s.id "
+        "LEFT JOIN users r ON t.receiver_id = r.id "
+        "WHERE "
+        "  (t.sender_id = ? AND t.transaction_type IN ('sent', 'transfer')) "
+        "  OR (t.receiver_id = ? AND t.transaction_type IN ('received', 'transfer', 'redeemed')) "
         "ORDER BY t.timestamp DESC",
         user_id, user_id
     )
@@ -171,7 +201,7 @@ def redeem_coupon(current_user):
         
         # Check if user has already redeemed this coupon
         already_redeemed = db.execute(
-            "SELECT id FROM transactions WHERE transaction_type = 'coupon_redemption' AND receiver_id = ? AND sender_id = ?",
+            "SELECT id FROM transactions WHERE transaction_type = 'redeemed' AND receiver_id = ? AND sender_id = ?",
             user_id, coupon_id
         )
         
@@ -192,11 +222,15 @@ def redeem_coupon(current_user):
         # Update user balance
         db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", coupon_amount, user_id)
         
+        # Get current time in GMT+5 (Pakistan timezone)
+        pk_timezone = pytz.timezone('Asia/Karachi')
+        current_time = datetime.now(pk_timezone).strftime('%Y-%m-%d %H:%M:%S')
+        
         # Record the redemption in transactions table
         # sender_id = coupon_id for redemptions
         db.execute(
-            "INSERT INTO transactions (transaction_type, sender_id, receiver_id, amount, status, note) VALUES (?, ?, ?, ?, ?, ?)",
-            'coupon_redemption', coupon_id, user_id, coupon_amount, 'completed', coupon_code
+            "INSERT INTO transactions (transaction_type, sender_id, receiver_id, amount, status, note, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            'redeemed', coupon_id, user_id, coupon_amount, 'completed', coupon_code, current_time
         )
         
         log_event('INFO', f'Coupon {coupon_code} redeemed successfully by {user_name} for Rs {coupon_amount}',

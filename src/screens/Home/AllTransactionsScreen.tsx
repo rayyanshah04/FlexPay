@@ -18,16 +18,33 @@ export default function AllTransactionsScreen({ route }: Props) {
       return transactions;
     }
     return transactions.filter(transaction => {
-      const isReceived = transaction.receiver_id === userId;
-      const name = isReceived ? transaction.sender_name : transaction.receiver_name;
+      const isReceived = transaction.transaction_type === 'received' || transaction.transaction_type === 'redeemed';
+      const isLegacyReceived = transaction.transaction_type === 'transfer' && transaction.receiver_id === userId;
+      const finalIsReceived = isReceived || isLegacyReceived;
+
+      const name = transaction.transaction_type === 'redeemed'
+        ? transaction.sender_name
+        : finalIsReceived
+          ? transaction.sender_name
+          : transaction.receiver_name;
       return name.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, [searchQuery, transactions, userId]);
 
   const renderTransaction = ({ item }: { item: any }) => {
-    const isReceived = item.receiver_id === userId;
-    const name = isReceived ? item.sender_name : item.receiver_name;
-    const amount = isReceived ? `+Rs. ${item.amount.toFixed(2)}` : `-Rs. ${item.amount.toFixed(2)}`;
+    const isReceived = item.transaction_type === 'received' || item.transaction_type === 'redeemed';
+    const isLegacyReceived = item.transaction_type === 'transfer' && item.receiver_id === userId;
+    const finalIsReceived = isReceived || isLegacyReceived;
+
+    const name = item.transaction_type === 'redeemed'
+      ? item.sender_name // Shows "Coupon: CODE"
+      : finalIsReceived
+        ? item.sender_name
+        : item.receiver_name;
+
+    const amount = finalIsReceived
+      ? `+Rs. ${item.amount.toFixed(2)}`
+      : `-Rs. ${item.amount.toFixed(2)}`;
     const time = new Date(item.timestamp).toLocaleString();
 
     return (
@@ -39,7 +56,7 @@ export default function AllTransactionsScreen({ route }: Props) {
           <Text style={styles.transactionName}>{name}</Text>
           <Text style={styles.transactionTime}>{time}</Text>
         </View>
-        <Text style={[styles.transactionAmount, { color: isReceived ? colors.success : colors.text }]}>
+        <Text style={[styles.transactionAmount, { color: finalIsReceived ? colors.success : colors.text }]}>
           {amount}
         </Text>
       </View>

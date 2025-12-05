@@ -28,7 +28,7 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
   const {
     name = 'Muhammad Hussain',
     iban = 'PK12ABC1234567890',
-    amount: initialAmount = '100',
+    amount: initialAmount = '0',
     phone = '',
   } = route.params || {};
 
@@ -41,13 +41,13 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
   const formatNumberWithCommas = (value: string): string => {
     // Remove any non-digit characters except decimal point
     const cleaned = value.replace(/[^\d.]/g, '');
-    
+
     // Split by decimal point
     const parts = cleaned.split('.');
-    
+
     // Format the integer part with commas
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    
+
     // Return formatted number (with decimal if it exists)
     return parts.join('.');
   };
@@ -67,7 +67,7 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
     console.log('DEBUG: Sending transaction with phone:', phoneNumber);
 
     setIsLoading(true);
-    
+
     try {
       const response = await api('/api/transactions/send', {
         method: 'POST',
@@ -91,9 +91,9 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
       if (response.ok) {
         // Show success notification
         NotificationService.transactionNotification('sent', formatNumberWithCommas(amount), name);
-        
-        const transactionId = data.transaction_id ? `TXN${data.transaction_id}` : `TXN${Date.now().toString().slice(-10)}`;
-        
+
+        const transactionId = data.transaction_id || `TXN${Date.now().toString().slice(-10)}`;
+
         navigation.navigate('PaymentSuccess', {
           name,
           amount: formatNumberWithCommas(amount),
@@ -133,7 +133,7 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.backdropSquare} />
-          
+
           <View style={styles.cardWrapper}>
             <View style={styles.card}>
               <View style={styles.cardTop}>
@@ -147,7 +147,7 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
                   <Text style={styles.recipientName}>{name}</Text>
                   <Text style={styles.recipientPhone}>{phoneNumber}</Text>
                 </View>
-                
+
                 <View style={styles.amountSection}>
                   <Text style={styles.amountLabel}>Amount</Text>
                   <View style={styles.amountInputWrapper}>

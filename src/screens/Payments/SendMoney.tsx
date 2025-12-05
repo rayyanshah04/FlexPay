@@ -93,7 +93,7 @@ export default function SendMoney({ navigation }: Props) {
 
     const isNumberSearch = accountNo.startsWith('03') || accountNo.startsWith('PK04');
     if (isNumberSearch) {
-      const existsInBeneficiaries = beneficiaries.some(b => 
+      const existsInBeneficiaries = beneficiaries.some(b =>
         (b.phone_number && b.phone_number === accountNo) ||
         (b.iban_or_number && b.iban_or_number === accountNo)
       );
@@ -110,13 +110,13 @@ export default function SendMoney({ navigation }: Props) {
           const data = await response.json();
           if (response.ok && data.user) {
             setDisplayedResults(prev => {
-              const suggested = { 
+              const suggested = {
                 ...data.user,
                 phone_number: data.user.phone_number,
                 iban_or_number: data.user.iban_or_number || data.user.phone_number,
-                color: getRandomColor() 
+                color: getRandomColor()
               };
-              const isAlreadyDisplayed = prev.some(u => 
+              const isAlreadyDisplayed = prev.some(u =>
                 (u.phone_number && suggested.phone_number && u.phone_number === suggested.phone_number) ||
                 (u.iban_or_number && suggested.iban_or_number && u.iban_or_number === suggested.iban_or_number)
               );
@@ -140,11 +140,11 @@ export default function SendMoney({ navigation }: Props) {
     if (!user.phone_number && phoneNumber && phoneNumber.startsWith('PK04FLXP')) {
       phoneNumber = phoneNumber.slice(-11); // Last 11 digits
     }
-    
+
     navigation.navigate('ConfirmPayment', {
       name: user.nickname || user.name,
       iban: user.iban_or_number || user.phone_number || '',
-      amount: '10,000 PKR',
+      amount: '',
       phone: phoneNumber,
     });
   };
@@ -155,7 +155,7 @@ export default function SendMoney({ navigation }: Props) {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        
+
       >
         <View style={[styles.scrollContent, { paddingTop: insets.top + 60, paddingBottom: 160 }]}>
           {/* Search Input */}
@@ -199,7 +199,7 @@ export default function SendMoney({ navigation }: Props) {
                 <View style={styles.userInfo}>
                   <Text style={styles.userName}>{user.nickname || user.name}</Text>
                   <Text style={styles.userPhone}>
-                    {user.phone_number || (user.iban_or_number && user.iban_or_number.startsWith('PK04FLXP') 
+                    {user.phone_number || (user.iban_or_number && user.iban_or_number.startsWith('PK04FLXP')
                       ? user.iban_or_number.slice(-11)
                       : user.iban_or_number) || 'N/A'}
                   </Text>
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    marginBottom : 20,
+    marginBottom: 20,
     padding: 24,
     backgroundColor: colors.Background,
     borderTopWidth: 1,
