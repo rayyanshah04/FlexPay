@@ -275,15 +275,16 @@
                 <i class="fas fa-th-large"></i>
                 Dashboard
             </a>
-            <a href="#" class="nav-item">
+            <a href="/admin/users" class="nav-item {% if request.path == '/admin/users' %}active{% endif %}">
                 <i class="fas fa-users"></i>
                 Users
             </a>
-            <a href="#" class="nav-item">
+            <a href="/admin/transactions"
+                class="nav-item {% if request.path == '/admin/transactions' %}active{% endif %}">
                 <i class="fas fa-exchange-alt"></i>
                 Transactions
             </a>
-            <a href="#" class="nav-item">
+            <a href="/admin/cards" class="nav-item {% if request.path == '/admin/cards' %}active{% endif %}">
                 <i class="fas fa-credit-card"></i>
                 Cards
             </a>
