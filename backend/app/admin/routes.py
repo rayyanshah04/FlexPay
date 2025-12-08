@@ -194,7 +194,7 @@ def users():
 
         #user transaction count
         user["transaction_count"] = db.execute(
-            "SELECT COUNT(*) FROM transactions WHERE (transaction_type = 'sent' AND sender_id = ?) OR (transaction_type = 'redeemed' AND sender_id = ?)", 
+            "SELECT COUNT(*) FROM transactions WHERE (transaction_type = 'sent' AND sender_id = ?) OR (transaction_type = 'redeemed' AND receiver_id = ?)", 
             user["id"], user["id"]
         )[0]["COUNT(*)"]
     print(users)

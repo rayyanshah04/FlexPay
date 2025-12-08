@@ -2,8 +2,7 @@ from flask import Blueprint, request, jsonify
 from ..database import db
 from ..utils import session_token_required
 from ..logger import log_event
-from ..config import FCM_API_KEY
-from pyfcm.fcm import FCMNotification
+from firebase_admin import messaging
 import secrets
 from datetime import datetime
 import pytz
@@ -105,25 +104,29 @@ def send_money(current_user):
                  user_id=sender_id, details=f"receiver_id: {receiver_id}, amount: {amount}, txn_id: {transaction_id}")
         
         # Send push notification to receiver
-        if receiver_device_token and FCM_API_KEY:
+        if receiver_device_token:
             try:
-                push_service = FCMNotification(api_key=FCM_API_KEY)
-                message_title = "💰 Money Received!"
-                message_body = f"You received Rs. {amount} from {sender_name}"
-                result = push_service.notify_single_device(
-                    registration_id=receiver_device_token,
-                    message_title=message_title,
-                    message_body=message_body,
-                    data_message={"type": "transaction", "amount": amount, "sender": sender_name}
+                message = messaging.Message(
+                    notification=messaging.Notification(
+                        title="💰 Money Received!",
+                        body=f"You received Rs. {amount} from {sender_name}",
+                    ),
+                    data={
+                        "type": "transaction",
+                        "amount": str(amount),
+                        "sender": sender_name
+                    },
+                    token=receiver_device_token,
                 )
-                print(f"DEBUG: FCM Notification Result: {result}")
+                response = messaging.send(message)
+                print(f"DEBUG: FCM Notification Result: {response}")
                 log_event('INFO', f'Push notification sent to {receiver_id}', user_id=receiver_id, details=f"amount: {amount}, sender: {sender_name}")
             except Exception as e:
                 log_event('ERROR', f'Failed to send push notification to {receiver_id}. Error: {e}', user_id=receiver_id)
                 print(f"ERROR: Failed to send push notification: {e}")
         else:
-            print(f"DEBUG: No device token or FCM_API_KEY for receiver {receiver_id}. Notification not sent.")
-            log_event('WARNING', f'No device token or FCM_API_KEY for receiver {receiver_id}. Notification not sent.', user_id=receiver_id)
+            print(f"DEBUG: No device token for receiver {receiver_id}. Notification not sent.")
+            log_event('WARNING', f'No device token for receiver {receiver_id}. Notification not sent.', user_id=receiver_id)
         
         return jsonify({
             "message": "Transaction successful",

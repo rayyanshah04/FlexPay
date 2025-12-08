@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import api from '../../utils/api';
 import { selectUser } from '../../slices/authSlice';
-import NotificationService from '../../utils/NotificationService';
 import { colors } from '../../theme/style';
 import { Button } from '../../components/ui/Button';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
@@ -49,7 +48,7 @@ const HomeScreen = () => {
 
       if (previousBalance.current !== null && data.balance > previousBalance.current) {
         const difference = data.balance - previousBalance.current;
-        NotificationService.transactionNotification('received', difference.toFixed(2), 'Someone');
+        // NotificationService.transactionNotification('received', difference.toFixed(2), 'Someone');
       }
 
       previousBalance.current = data.balance;

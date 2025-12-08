@@ -1,4 +1,3 @@
-
 import { Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { store } from '../store';
@@ -15,12 +14,13 @@ class NotificationService {
     this.listenForAuthChanges();
   }
 
+
   setupFCMTokenListener = () => {
     console.log(`${DEBUG_PREFIX} [SETUP] setupFCMTokenListener called, Platform: ${Platform.OS}`);
-    
+
     try {
       console.log(`${DEBUG_PREFIX} [SETUP] Setting up Firebase Cloud Messaging listener`);
-      
+
       // Get token on app start
       messaging().getToken().then((token) => {
         if (token) {
@@ -46,11 +46,13 @@ class NotificationService {
         this.sendTokenToBackend();
       });
 
-      // Listen for messages
+      // Listen for messages in foreground
       messaging().onMessage(async (remoteMessage) => {
-        console.log(`${DEBUG_PREFIX} [EVENT] FCM Message Received:`, remoteMessage);
+        console.log(`${DEBUG_PREFIX} [EVENT] FCM Message Received in Foreground:`, remoteMessage);
+        // Firebase automatically handles notifications when app is in background
+        // For foreground, the notification will be shown by the OS
       });
-      
+
       console.log(`${DEBUG_PREFIX} [SETUP] ✅ Firebase Messaging listeners registered successfully`);
     } catch (error) {
       console.error(`${DEBUG_PREFIX} [SETUP] ❌ Error setting up FCM listener:`, error);
@@ -76,7 +78,7 @@ class NotificationService {
 
     console.log(`${DEBUG_PREFIX} [STEP 2/4] sendTokenToBackend called`);
     console.log(`${DEBUG_PREFIX} [STEP 2/4] Device token: ${this.fcmToken}`);
-    
+
     const state = store.getState();
     const userToken = state.auth.authToken;
     const userId = state.auth.user?.id;
@@ -91,15 +93,15 @@ class NotificationService {
 
     if (userToken) {
       console.log(`${DEBUG_PREFIX} [STEP 2/4] ✅ User is authenticated, proceeding with token send`);
-      
+
       try {
         const url = `${API_BASE}/api/user/device-token`;
         const payload = { device_token: this.fcmToken };
-        
+
         console.log(`${DEBUG_PREFIX} [STEP 3/4] 📡 Sending token to backend`);
         console.log(`${DEBUG_PREFIX} [STEP 3/4] URL: ${url}`);
         console.log(`${DEBUG_PREFIX} [STEP 3/4] Payload:`, payload);
-        
+
         const response = await fetch(url, {
           method: 'POST',
           headers: {

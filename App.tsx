@@ -14,8 +14,9 @@ function Root() {
   const authStatus = useSelector(selectAuthStatus);
 
   useEffect(() => {
-    // Initialize notification service
+    // Initialize notification service (Firebase)
     NotificationService;
+
     dispatch(checkAuth());
 
     // Request permissions on app launch

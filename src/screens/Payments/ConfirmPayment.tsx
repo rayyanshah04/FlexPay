@@ -19,7 +19,6 @@ import { colors } from '../../theme/style';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserIcon from '../../assets/icons/user-solid-full.svg';
 import api from '../../utils/api';
-import NotificationService from '../../utils/NotificationService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConfirmPayment'>;
 
@@ -90,7 +89,7 @@ const ConfirmPayment: React.FC<Props> = ({ route, navigation }) => {
 
       if (response.ok) {
         // Show success notification
-        NotificationService.transactionNotification('sent', formatNumberWithCommas(amount), name);
+        // NotificationService.transactionNotification('sent', formatNumberWithCommas(amount), name);
 
         const transactionId = data.transaction_id || `TXN${Date.now().toString().slice(-10)}`;
 
