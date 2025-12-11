@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 import { store } from '../store';
 import { API_BASE } from '../config';
 
@@ -12,7 +13,18 @@ class NotificationService {
     console.log(`${DEBUG_PREFIX} [INIT] NotificationService constructor called`);
     this.setupFCMTokenListener();
     this.listenForAuthChanges();
+    this.createNotificationChannel();
   }
+
+  createNotificationChannel = async () => {
+    // Create a notification channel for Android
+    await notifee.createChannel({
+      id: 'default',
+      name: 'Default Channel',
+      importance: AndroidImportance.HIGH,
+      sound: 'default',
+    });
+  };
 
 
   setupFCMTokenListener = () => {
@@ -46,11 +58,27 @@ class NotificationService {
         this.sendTokenToBackend();
       });
 
-      // Listen for messages in foreground
+      // Listen for messages in foreground - only display if not already shown
       messaging().onMessage(async (remoteMessage) => {
         console.log(`${DEBUG_PREFIX} [EVENT] FCM Message Received in Foreground:`, remoteMessage);
-        // Firebase automatically handles notifications when app is in background
-        // For foreground, the notification will be shown by the OS
+
+        // Only display notification if it has data (transaction notification from backend)
+        // Firebase auto-displays notifications with 'notification' field when app is in background
+        if (remoteMessage.notification && remoteMessage.data?.type === 'transaction') {
+          await notifee.displayNotification({
+            title: remoteMessage.notification.title,
+            body: remoteMessage.notification.body,
+            android: {
+              channelId: 'default',
+              smallIcon: 'ic_menu_camera', // Your white logo without background circle
+              color: '#9747ff', // FlexPay purple color
+              pressAction: {
+                id: 'default',
+              },
+            },
+          });
+          console.log(`${DEBUG_PREFIX} [NOTIFEE] Displaying notification with smallIcon: ic_menu_camera`);
+        }
       });
 
       console.log(`${DEBUG_PREFIX} [SETUP] ✅ Firebase Messaging listeners registered successfully`);

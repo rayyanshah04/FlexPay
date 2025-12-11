@@ -337,7 +337,7 @@ def send_notification():
 
         if target_type == 'all':
             # Get all device tokens
-            users = db.execute("SELECT device_token FROM users WHERE device_token IS NOT NULL")
+            users = db.execute("SELECT DISTINCT device_token FROM users WHERE device_token IS NOT NULL")
             device_tokens = [user['device_token'] for user in users]
             
             if device_tokens:
