@@ -1,222 +1,241 @@
 <p align="center">
-  <img src="src/assets/logo.png" alt="Flexpay Logo" width="200"/>
+  <img src="src/assets/logo.png" alt="FlexPay Logo" width="120"/>
 </p>
 
-<h1 align="center">Flexpay</h1>
+<h1 align="center">FlexPay</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
-  <img src="https://img.shields.io/badge/version-0.0.1-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/react--native-0.82.0-blue.svg" alt="React Native">
-  <img src="https://img.shields.io/badge/python-3.x-blue.svg" alt="Python">
+  A mobile payment app with virtual cards, QR payments, and real-time notifications.
 </p>
 
-Flexpay is a mobile payment application that allows users to send and receive money, manage their finances, and make payments seamlessly. It features a secure authentication system, virtual card management, and QR code payment capabilities. The application is built with a React Native frontend and a Python Flask backend.
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"/>
+  <img src="https://img.shields.io/badge/version-0.0.1-blue.svg" alt="Version"/>
+  <img src="https://img.shields.io/badge/React_Native-0.82.0-61DAFB?logo=react&logoColor=white" alt="React Native"/>
+  <img src="https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/Flask-API-000000?logo=flask&logoColor=white" alt="Flask"/>
+  <img src="https://img.shields.io/badge/TypeScript-strict-007ACC?logo=typescript&logoColor=white" alt="TypeScript"/>
+</p>
 
-## Table of Contents
+---
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Folder Structure](#folder-structure)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Running the Application](#running-the-application)
-- [Linting and Testing](#linting-and-testing)
-- [API Endpoints](#api-endpoints)
+## Overview
+
+FlexPay is a full-stack mobile payment application. Users can send and receive money, manage virtual debit/credit cards, pay via QR code, and receive real-time push notifications for every transaction. The frontend is built in React Native (TypeScript) and the backend is a Python Flask REST API with JWT authentication.
+
+---
 
 ## Features
 
-- **Authentication:** Secure user signup and login with JWT-based authentication.
-- **PIN Lock:** Users can set a 4-digit PIN for quick and secure access to the app.
-- **Send and Receive Money:** Instantly send money to other Flexpay users.
-- **Transaction History:** View a detailed history of all your transactions.
-- **Virtual Cards:** Get a virtual Mastercard, Visa, or American Express card for online payments.
-- **Card Management:** Freeze, unfreeze, or delete your virtual card.
-- **QR Code Payments:**
-    - Generate a personal QR code to receive payments.
-    - Scan other users' QR codes to send money.
-- **Beneficiaries:** Add and manage a list of frequent payees.
-- **Profile Management:** Update your personal information and change your password.
-- **Push Notifications:** Receive real-time notifications for transactions.
+| Feature | Description |
+|---|---|
+| Secure Auth | JWT-based signup/login + 4-digit PIN lock |
+| Send & Receive | Instant transfers to other FlexPay users |
+| Virtual Cards | Mastercard / Visa / Amex virtual cards |
+| Card Management | Freeze, unfreeze, or delete your card |
+| QR Payments | Generate your QR code or scan others to pay |
+| Transaction History | Full log of all incoming and outgoing transfers |
+| Beneficiaries | Save frequent payees for quick access |
+| Push Notifications | Real-time alerts via Firebase Cloud Messaging |
+| Profile Management | Update info, change password, delete account |
+
+---
 
 ## Tech Stack
 
-### Frontend (Mobile App)
+### Frontend
 
-- **React Native:** A framework for building native mobile apps using JavaScript and React.
-- **React Navigation:** For routing and navigation between screens.
-- **Redux Toolkit:** For state management.
-- **React Native Paper:** A library for Material Design components.
-- **TypeScript:** For static typing.
-- **Jest:** For testing.
-- **ESLint:** For linting.
+| | Technology |
+|---|---|
+| Framework | React Native 0.82 |
+| Language | TypeScript |
+| Navigation | React Navigation |
+| State | Redux Toolkit |
+| UI | React Native Paper (Material Design) |
+| Testing | Jest |
+| Linting | ESLint |
 
 ### Backend
 
-- **Python:** A versatile programming language.
-- **Flask:** A lightweight web framework for building the API.
-- **SQLite:** A C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.
-- **Faker:** For generating fake data (e.g., credit card numbers).
-- **PyJWT:** For encoding and decoding JSON Web Tokens.
-- **pyfcm:** For sending push notifications via Firebase Cloud Messaging (FCM).
+| | Technology |
+|---|---|
+| Language | Python 3 |
+| Framework | Flask |
+| Database | SQLite |
+| Auth | PyJWT |
+| Push Notifications | pyfcm (Firebase) |
+| Test Data | Faker |
 
-## Folder Structure
+---
+
+## Screenshots
+
+> Screenshots coming soon.
+
+---
+
+## Project Structure
 
 ```
-Flexpay/
+FlexPay/
 ├── backend/
 │   ├── app/
-│   │   ├── api/         # API blueprints (auth, transactions, etc.)
-│   │   ├── __init__.py  # Flask app factory
-│   │   └── ...
-│   ├── requirements.txt # Python dependencies
-│   └── run.py           # Script to run the backend server
+│   │   ├── api/          # Blueprints: auth, transactions, cards, etc.
+│   │   └── __init__.py   # Flask app factory
+│   ├── requirements.txt
+│   └── run.py
 ├── src/
-│   ├── assets/          # Images, fonts, and icons
-│   ├── components/      # Reusable UI components
-│   ├── navigations/     # React Navigation setup
-│   ├── screens/         # Application screens
-│   ├── slices/          # Redux slices
-│   ├── store/           # Redux store configuration
-│   ├── theme/           # App theme and styles
-│   ├── types/           # TypeScript types
-│   └── utils/           # Utility functions
-├── App.tsx              # Main app component
-├── package.json         # Node.js dependencies and scripts
-└── ...
+│   ├── assets/           # Images, fonts, icons
+│   ├── components/       # Reusable UI components
+│   ├── navigations/      # React Navigation setup
+│   ├── screens/          # All app screens
+│   ├── slices/           # Redux slices
+│   ├── store/            # Redux store
+│   ├── theme/            # Colors, typography, styles
+│   ├── types/            # TypeScript interfaces
+│   └── utils/            # Helper functions
+├── App.tsx
+└── package.json
 ```
+
+---
 
 ## Prerequisites
 
-- Node.js (>=20)
+- Node.js >= 20
 - Python 3.x
-- React Native development environment (Android and/or iOS)
+- React Native development environment set up ([guide](https://reactnative.dev/docs/environment-setup))
+- Android Studio or Xcode (for emulator/simulator)
 
-## Installation
+---
 
-### Backend
+## Setup
 
-1.  **Navigate to the backend directory:**
-    ```bash
-    cd backend
-    ```
-
-2.  **Create a virtual environment:**
-    ```bash
-    python -m venv venv
-    ```
-
-3.  **Activate the virtual environment:**
-    - On Windows:
-      ```bash
-      venv\Scripts\activate
-      ```
-    - On macOS and Linux:
-      ```bash
-      source venv/bin/activate
-      ```
-
-4.  **Install the required Python packages:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-### Frontend
-
-1.  **Navigate to the project root directory:**
-    ```bash
-    cd .. 
-    ```
-
-2.  **Install the required Node.js packages:**
-    ```bash
-    npm install
-    ```
-
-## Running the Application
-
-### Backend
-
-1.  **Make sure you are in the `backend` directory with the virtual environment activated.**
-
-2.  **Run the Flask server:**
-    ```bash
-    flask run
-    ```
-    The backend server will start on `http://127.0.0.1:5000`.
-
-### Frontend
-
-1.  **Make sure the backend server is running.**
-
-2.  **Run the React Native app:**
-
-    - **For Android:**
-      ```bash
-      npm run android
-      ```
-
-    - **For iOS:**
-      ```bash
-      cd ios
-      pod install
-      cd ..
-      npm run ios
-      ```
-
-## Linting and Testing
-
-### Linting
-
-To check the code for any linting errors, run the following command from the project root directory:
+### 1. Backend
 
 ```bash
-npm run lint
+cd backend
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+flask run
 ```
 
-### Testing
+The API will be available at `http://127.0.0.1:5000`.
 
-To run the test suite, use the following command from the project root directory:
+### 2. Frontend
 
 ```bash
-npm run test
+# From project root
+npm install
 ```
 
-## API Endpoints
+### 3. Run
 
-The backend API provides the following endpoints:
+**Android:**
+```bash
+npm run android
+```
 
-- **Auth**
-  - `POST /api/signup`: Create a new user account.
-  - `POST /api/login`: Log in an existing user.
-  - `POST /api/session/refresh`: Refresh the session token.
-- **User**
-  - `GET /api/balance`: Get the user's account balance.
-  - `GET /api/profile`: Get the user's profile information.
-  - `PUT /api/profile/update`: Update the user's profile.
-  - `PUT /api/password/change`: Change the user's password.
-  - `DELETE /api/account/delete`: Delete the user's account.
-  - `GET /api/qr-data`: Get the data for the user's QR code.
-  - `POST /api/user/device-token`: Update the user's device token for push notifications.
-  - `GET /api/login-pin/check`: Check if the user has a login PIN set.
-  - `POST /api/login-pin/set`: Set a new login PIN.
-  - `POST /api/login-pin/verify`: Verify the login PIN.
-- **Transactions**
-  - `POST /api/transactions/send`: Send money to another user.
-  - `GET /api/transactions`: Get the user's transaction history.
-  - `POST /api/coupons/redeem`: Redeem a coupon.
-- **Beneficiaries**
-  - `POST /api/add_beneficiary`: Add a new beneficiary.
-  - `GET /api/beneficiaries`: Get the list of beneficiaries.
-  - `GET /api/search_user`: Search for a user by phone number.
-- **Cards**
-  - `POST /api/has_card`: Check if the user has a virtual card.
-  - `POST /api/get_card`: Create a new virtual card.
-  - `POST /api/get_card_details`: Get the details of the user's virtual card.
-  - `POST /api/freeze_card`: Freeze or unfreeze the virtual card.
-  - `POST /api/delete_card`: Delete the virtual card.
-- **QR Code**
-  - `POST /api/qr-decode`: Decode a QR code.
-  - `GET /api/qr-scans`: Get the user's QR scan history.
-  - `GET /api/qr-scans/latest`: Get the latest QR scan.
-  - `POST /api/qr/verify-user`: Verify a user from a scanned QR code.
+**iOS:**
+```bash
+cd ios && pod install && cd ..
+npm run ios
+```
+
+---
+
+## API Reference
+
+<details>
+<summary>Auth</summary>
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/signup` | Create account |
+| POST | `/api/login` | Login |
+| POST | `/api/session/refresh` | Refresh token |
+
+</details>
+
+<details>
+<summary>User</summary>
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/balance` | Account balance |
+| GET | `/api/profile` | Profile info |
+| PUT | `/api/profile/update` | Update profile |
+| PUT | `/api/password/change` | Change password |
+| DELETE | `/api/account/delete` | Delete account |
+| GET | `/api/qr-data` | QR code data |
+| POST | `/api/user/device-token` | Register push token |
+| GET | `/api/login-pin/check` | Check PIN status |
+| POST | `/api/login-pin/set` | Set PIN |
+| POST | `/api/login-pin/verify` | Verify PIN |
+
+</details>
+
+<details>
+<summary>Transactions</summary>
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/transactions/send` | Send money |
+| GET | `/api/transactions` | Transaction history |
+| POST | `/api/coupons/redeem` | Redeem coupon |
+
+</details>
+
+<details>
+<summary>Cards</summary>
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/has_card` | Check card status |
+| POST | `/api/get_card` | Create virtual card |
+| POST | `/api/get_card_details` | Card details |
+| POST | `/api/freeze_card` | Freeze / unfreeze |
+| POST | `/api/delete_card` | Delete card |
+
+</details>
+
+<details>
+<summary>Beneficiaries & QR</summary>
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/add_beneficiary` | Add beneficiary |
+| GET | `/api/beneficiaries` | List beneficiaries |
+| GET | `/api/search_user` | Search by phone |
+| POST | `/api/qr-decode` | Decode QR |
+| GET | `/api/qr-scans` | QR scan history |
+| GET | `/api/qr-scans/latest` | Latest QR scan |
+| POST | `/api/qr/verify-user` | Verify from QR |
+
+</details>
+
+---
+
+## Linting & Tests
+
+```bash
+npm run lint    # ESLint
+npm run test    # Jest
+```
+
+---
+
+## Contributing
+
+1. Fork the repo
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'Add your feature'`
+4. Push: `git push origin feature/your-feature`
+5. Open a pull request
+
+---
+
+## License
+
+[MIT](LICENSE)
